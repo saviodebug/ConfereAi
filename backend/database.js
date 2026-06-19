@@ -14,7 +14,7 @@ const db = useSupabase
 
 const trustedSourcesSeed = [
   ["TSE", "https://www.tse.jus.br/", "fonte oficial"],
-  ["TREs", "https://www.tse.jus.br/institucional/tribunais-regionais", "fonte oficial"],
+  ["TREs", "https://www.tse.jus.br/institucional/justica-eleitoral", "fonte oficial"],
   ["Agência Lupa", "https://lupa.uol.com.br/", "agência de checagem"],
   ["Aos Fatos", "https://www.aosfatos.org/", "agência de checagem"],
   ["Estadão Verifica", "https://www.estadao.com.br/estadao-verifica/", "agência de checagem"],
@@ -23,6 +23,10 @@ const trustedSourcesSeed = [
   ["Senado", "https://www12.senado.leg.br/", "fonte oficial"],
   ["Câmara dos Deputados", "https://www.camara.leg.br/", "fonte oficial"]
 ];
+
+const trustedSourceUrlOverrides = {
+  TREs: "https://www.tse.jus.br/institucional/justica-eleitoral"
+};
 
 const keywordSeed = [
   ["urna eletrônica", "processo eleitoral", 2],
@@ -293,16 +297,23 @@ async function getTrustedSources() {
       throw error;
     }
 
-    return data || [];
+    return normalizeTrustedSources(data || []);
   }
 
-  return all(
+  return normalizeTrustedSources(await all(
     `SELECT id, nome, url, tipo, ativo
     FROM fontes_confiaveis
     WHERE ativo = 1
       AND nome <> 'Fato ou Boato'
     ORDER BY nome ASC`
-  );
+  ));
+}
+
+function normalizeTrustedSources(sources) {
+  return sources.map((source) => ({
+    ...source,
+    url: trustedSourceUrlOverrides[source.nome] || source.url
+  }));
 }
 
 async function getStats(clientId) {
