@@ -37,6 +37,7 @@ async function analyzeContent(input) {
   };
 
   await saveAnalysis({
+    clientId: content.clientId,
     titulo: content.titulo,
     url: content.url,
     textoResumo: content.texto.slice(0, 600),
@@ -61,7 +62,8 @@ function sanitizeInput(input) {
     texto: String(input.texto || input.text || "").slice(0, 8000),
     autor: String(input.autor || input.author || "").slice(0, 200),
     data: String(input.data || input.date || "").slice(0, 120),
-    observacoes: String(input.observacoes || "").slice(0, 1000)
+    observacoes: String(input.observacoes || "").slice(0, 1000),
+    clientId: String(input.clientId || input.client_id || "").slice(0, 120)
   };
 }
 

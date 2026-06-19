@@ -1,9 +1,11 @@
 /* global chrome, Tesseract */
 
+const VERCEL_BACKEND_URL = "https://verificavoto-ai-gemini.vercel.app";
 const SHARED_BACKEND_URL = "http://192.168.0.24:3000";
 const BACKEND_URLS = [
   "http://localhost:3000",
   "http://127.0.0.1:3000",
+  VERCEL_BACKEND_URL,
   SHARED_BACKEND_URL
 ].filter(Boolean);
 const MAX_IMAGE_SIZE_BYTES = 12 * 1024 * 1024;
@@ -163,6 +165,7 @@ async function analyzeManualText() {
 function withNotes(payload) {
   return {
     ...payload,
+    clientId: getClientId(),
     observacoes: notesInput.value.trim()
   };
 }
@@ -205,8 +208,8 @@ async function checkBackendHealth() {
 async function loadHistoryAndStats() {
   try {
     const [historyResponse, statsResponse] = await Promise.all([
-      requestBackend("/historico"),
-      requestBackend("/estatisticas")
+      requestBackend(`/historico?clientId=${encodeURIComponent(getClientId())}`),
+      requestBackend(`/estatisticas?clientId=${encodeURIComponent(getClientId())}`)
     ]);
 
     if (historyResponse.ok) {
@@ -230,7 +233,14 @@ async function requestBackend(path, options) {
 
   for (const baseUrl of urls) {
     try {
-      const response = await fetch(`${baseUrl}${path}`, options);
+      const requestOptions = {
+        ...(options || {}),
+        headers: {
+          ...(options && options.headers ? options.headers : {}),
+          "X-VerificaVoto-Client-Id": getClientId()
+        }
+      };
+      const response = await fetch(`${baseUrl}${path}`, requestOptions);
       activeBackendUrl = baseUrl;
       return response;
     } catch (error) {
@@ -239,6 +249,18 @@ async function requestBackend(path, options) {
   }
 
   throw lastError || new Error("Nenhum backend configurado.");
+}
+
+function getClientId() {
+  const storageKey = "verificavotoClientId";
+  let clientId = localStorage.getItem(storageKey);
+
+  if (!clientId) {
+    clientId = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
+    localStorage.setItem(storageKey, clientId);
+  }
+
+  return clientId;
 }
 
 async function capturePage(tabId) {
