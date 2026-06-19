@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "ConfereAí",
   "version": "1.2.1",
-  "description": "Analisa sinais de risco em notícias eleitorais usando backend local, regras e Gemini opcional.",
+  "description": "Analisa sinais de risco em notícias eleitorais usando API online, regras e Gemini opcional.",
   "content_security_policy": {
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
   },
