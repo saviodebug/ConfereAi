@@ -1,4 +1,4 @@
-const VERCEL_BACKEND_URL = "https://verificavoto-ai-gemini.vercel.app";
+const VERCEL_BACKEND_URL = "https://confereai.vercel.app";
 const BACKEND_URLS = [
   VERCEL_BACKEND_URL,
   "http://localhost:3000",
@@ -51,7 +51,7 @@ async function requestBackend(path, options) {
         ...(options || {}),
         headers: {
           ...(options && options.headers ? options.headers : {}),
-          "X-VerificaVoto-Client-Id": getClientId()
+          "X-Confereai-Client-Id": getClientId()
         }
       };
       const response = await fetch(`${baseUrl}${path}`, requestOptions);
@@ -66,14 +66,14 @@ async function requestBackend(path, options) {
 }
 
 function getClientId() {
-  const storageKey = "verificavotoClientId";
+  const storageKey = "confereaiClientId";
   let clientId = localStorage.getItem(storageKey);
 
   if (!clientId) {
     clientId = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
-    localStorage.setItem(storageKey, clientId);
   }
 
+  localStorage.setItem(storageKey, clientId);
   return clientId;
 }
 

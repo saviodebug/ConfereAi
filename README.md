@@ -1,6 +1,6 @@
-# VerificaVoto AI Gemini
+# ConfereAí
 
-VerificaVoto AI Gemini é uma extensão Chrome/Brave Manifest V3 para apoiar a análise de sinais de risco em notícias, prints e textos sobre temas políticos e eleitorais.
+ConfereAí é uma extensão Chrome/Brave Manifest V3 para apoiar a análise de sinais de risco em notícias, prints e textos sobre temas políticos e eleitorais.
 
 A ferramenta não determina se uma notícia é verdadeira ou falsa. Ela aponta sinais de baixo, médio ou alto risco e recomenda verificação em fontes confiáveis.
 
@@ -56,13 +56,13 @@ Depois disso, abra uma notícia, post ou página de interesse e clique no ícone
 A extensão está configurada para usar a API:
 
 ```text
-https://verificavoto-ai-gemini.vercel.app
+https://confereai.vercel.app
 ```
 
 Endpoint de teste:
 
 ```text
-https://verificavoto-ai-gemini.vercel.app/health
+https://confereai.vercel.app/health
 ```
 
 Resposta esperada:
@@ -116,7 +116,7 @@ Pontuação:
 ## Estrutura do projeto
 
 ```text
-verificavoto-ai-gemini/
+confereai/
 ├── extensao/
 │   ├── manifest.json
 │   ├── popup.html
@@ -204,4 +204,4 @@ Nunca envie `.env`, chaves Gemini ou chaves secretas Supabase para o GitHub.
 
 ## Objetivo acadêmico
 
-O VerificaVoto foi desenvolvido como uma ferramenta de apoio à educação midiática. O foco é mostrar critérios transparentes de análise, uso responsável de IA e recomendação de checagem em fontes oficiais e jornalísticas confiáveis.
+O ConfereAí foi desenvolvido como uma ferramenta de apoio à educação midiática. O foco é mostrar critérios transparentes de análise, uso responsável de IA e recomendação de checagem em fontes oficiais e jornalísticas confiáveis.

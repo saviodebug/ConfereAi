@@ -1,4 +1,4 @@
-# Backend VerificaVoto AI Gemini
+# Backend ConfereAí
 
 Backend local em Node.js para receber dados da extensão, aplicar regras locais, consultar Gemini opcionalmente e salvar o resultado em SQLite.
 

@@ -24,7 +24,7 @@ app.get("/health", (request, response) => {
 
 app.get("/", (request, response) => {
   response.json({
-    nome: "VerificaVoto AI Gemini",
+    nome: "ConfereAí",
     status: "ok",
     health: "/health"
   });
@@ -94,7 +94,7 @@ function ensureInitialized() {
 }
 
 function getClientId(request) {
-  return String(request.query.clientId || request.headers["x-verificavoto-client-id"] || "").slice(0, 120);
+  return String(request.query.clientId || request.headers["x-confereai-client-id"] || "").slice(0, 120);
 }
 
 function normalizeHistoryRow(row) {

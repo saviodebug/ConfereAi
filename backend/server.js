@@ -7,7 +7,7 @@ const port = Number(process.env.PORT || 3000);
 ensureInitialized()
   .then(() => {
     app.listen(port, () => {
-      console.log(`VerificaVoto AI Gemini rodando em http://localhost:${port}`);
+      console.log(`ConfereAí rodando em http://localhost:${port}`);
       console.log(`Modo atual: ${getGeminiMode()}`);
       console.log(`Banco atual: ${process.env.SUPABASE_URL ? "Supabase" : "SQLite local"}`);
 

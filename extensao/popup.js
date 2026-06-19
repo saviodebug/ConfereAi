@@ -1,6 +1,6 @@
 /* global chrome, Tesseract */
 
-const VERCEL_BACKEND_URL = "https://verificavoto-ai-gemini.vercel.app";
+const VERCEL_BACKEND_URL = "https://confereai.vercel.app";
 const BACKEND_URLS = [
   VERCEL_BACKEND_URL,
   "http://localhost:3000",
@@ -235,7 +235,7 @@ async function requestBackend(path, options) {
         ...(options || {}),
         headers: {
           ...(options && options.headers ? options.headers : {}),
-          "X-VerificaVoto-Client-Id": getClientId()
+          "X-Confereai-Client-Id": getClientId()
         }
       };
       const response = await fetch(`${baseUrl}${path}`, requestOptions);
@@ -250,14 +250,14 @@ async function requestBackend(path, options) {
 }
 
 function getClientId() {
-  const storageKey = "verificavotoClientId";
+  const storageKey = "confereaiClientId";
   let clientId = localStorage.getItem(storageKey);
 
   if (!clientId) {
     clientId = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
-    localStorage.setItem(storageKey, clientId);
   }
 
+  localStorage.setItem(storageKey, clientId);
   return clientId;
 }
 
@@ -276,7 +276,7 @@ async function capturePage(tabId) {
 
 function sendCaptureMessage(tabId) {
   return new Promise((resolve, reject) => {
-    chrome.tabs.sendMessage(tabId, { type: "VERIFICAVOTO_AI_CAPTURE" }, (response) => {
+    chrome.tabs.sendMessage(tabId, { type: "CONFEREAI_CAPTURE" }, (response) => {
       if (chrome.runtime.lastError) {
         reject(new Error(chrome.runtime.lastError.message));
         return;
@@ -589,7 +589,7 @@ function buildPlainReport(report) {
   const { payload, result } = report;
 
   return [
-    "VerificaVoto AI Gemini",
+    "ConfereAí",
     `Título: ${payload.titulo}`,
     `URL: ${payload.url}`,
     `Classificação: ${result.classificacao}`,
@@ -621,7 +621,7 @@ function buildHtmlReport(report) {
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-  <title>Relatório VerificaVoto</title>
+  <title>Relatório ConfereAí</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 32px; color: #172033; }
     pre { white-space: pre-wrap; line-height: 1.45; }

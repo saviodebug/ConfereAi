@@ -1,8 +1,8 @@
 {
-  "name": "verificavoto-ai-gemini-backend",
+  "name": "confereai-backend",
   "version": "1.0.0",
   "private": true,
-  "description": "Backend local do VerificaVoto AI Gemini com regras, SQLite e Gemini opcional.",
+  "description": "Backend local do ConfereAí com regras, SQLite e Gemini opcional.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
