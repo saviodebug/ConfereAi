@@ -8,7 +8,9 @@ const supabase = useSupabase
   : null;
 const db = useSupabase
   ? null
-  : new (require("sqlite3").verbose().Database)(databasePath);
+  : process.env.VERCEL
+    ? null
+    : new (require("sqlite3").verbose().Database)(databasePath);
 
 const trustedSourcesSeed = [
   ["TSE", "https://www.tse.jus.br/", "fonte oficial"],
@@ -74,6 +76,10 @@ async function initializeDatabase() {
     await seedTrustedSourcesSupabase();
     await seedKeywordsSupabase();
     return;
+  }
+
+  if (process.env.VERCEL) {
+    throw new Error("SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY precisam estar configuradas na Vercel.");
   }
 
   await run(`

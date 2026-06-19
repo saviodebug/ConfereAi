@@ -12,6 +12,24 @@ let initializationPromise = null;
 app.use(cors({ origin: true }));
 app.use(express.json({ limit: "1mb" }));
 
+app.get("/health", (request, response) => {
+  response.json({
+    status: "ok",
+    geminiConfigurado: isGeminiEnabled(),
+    modo: getGeminiMode(),
+    banco: process.env.SUPABASE_URL ? "supabase" : "sqlite",
+    supabaseConfigurado: Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY)
+  });
+});
+
+app.get("/", (request, response) => {
+  response.json({
+    nome: "VerificaVoto AI Gemini",
+    status: "ok",
+    health: "/health"
+  });
+});
+
 app.use(async (request, response, next) => {
   try {
     await ensureInitialized();
@@ -19,15 +37,6 @@ app.use(async (request, response, next) => {
   } catch (error) {
     next(error);
   }
-});
-
-app.get("/health", (request, response) => {
-  response.json({
-    status: "ok",
-    geminiConfigurado: isGeminiEnabled(),
-    modo: getGeminiMode(),
-    banco: process.env.SUPABASE_URL ? "supabase" : "sqlite"
-  });
 });
 
 app.post("/analisar", async (request, response) => {
