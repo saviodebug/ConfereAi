@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>VerificaVoto AI Gemini</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main class="app">
+      <header class="header">
+        <img class="app-logo" src="assets/logo-pequena.png" alt="VerificaVoto">
+        <div>
+          <p class="eyebrow">Backend local + IA opcional</p>
+          <h1>VerificaVoto AI Gemini</h1>
+        </div>
+      </header>
+
+      <section class="card">
+        <p>
+          Analise sinais de risco em notícias políticas e eleitorais abertas na aba atual.
+        </p>
+        <button id="analyzeBtn" type="button">Analisar página atual</button>
+      </section>
+
+      <section class="card">
+        <h2>Analisar print</h2>
+        <p>Escolha uma imagem ou use Ctrl+V em qualquer lugar do popup para colar um print.</p>
+        <label class="file-label" for="printInput">Selecionar imagem</label>
+        <input id="printInput" type="file" accept="image/png, image/jpeg, image/webp">
+        <div id="pastePrintBox" class="paste-box" tabindex="0">
+          Use Ctrl+V para colar uma imagem copiada
+        </div>
+        <p id="selectedPrintName" class="selected-file">Nenhuma imagem selecionada.</p>
+        <button id="analyzePrintBtn" type="button">Analisar print</button>
+      </section>
+
+      <section class="card">
+        <h2>Analisar texto colado</h2>
+        <p>Cole um trecho de notícia, post ou mensagem política para analisar sem OCR.</p>
+        <textarea id="manualTextInput" rows="5" placeholder="Cole aqui o texto que deseja analisar..."></textarea>
+        <button id="analyzeTextBtn" type="button">Analisar texto</button>
+      </section>
+
+      <section class="card">
+        <h2>Observações</h2>
+        <p>Opcional: registre contexto da análise para salvar no histórico.</p>
+        <textarea id="notesInput" rows="3" placeholder="Ex.: print recebido em grupo de família, postagem sem link..."></textarea>
+      </section>
+
+      <section class="actions">
+        <button id="healthBtn" type="button" class="secondary">Verificar backend</button>
+        <button id="dashboardBtn" type="button" class="secondary">Abrir dashboard</button>
+      </section>
+
+      <section id="status" class="status" aria-live="polite"></section>
+      <section id="backendStatus" class="status-line"></section>
+
+      <section id="result" class="hidden">
+        <section id="ocrCard" class="card hidden">
+          <details open>
+            <summary>Texto extraído do print</summary>
+            <pre id="ocrText"></pre>
+          </details>
+        </section>
+
+        <section id="riskCard" class="card risk-card">
+          <span>Classificação</span>
+          <strong id="classification">-</strong>
+          <small id="score">Pontuação: -</small>
+          <small id="mode">Modo: -</small>
+          <small id="geminiStatus">Gemini: -</small>
+        </section>
+
+        <section class="actions">
+          <button id="copyReportBtn" type="button" class="secondary">Copiar relatório</button>
+          <button id="htmlReportBtn" type="button" class="secondary">Gerar relatório HTML</button>
+        </section>
+
+        <section class="card">
+          <h2>Dados analisados</h2>
+          <dl class="report">
+            <div>
+              <dt>Título analisado:</dt>
+              <dd id="title">-</dd>
+            </div>
+            <div>
+              <dt>URL:</dt>
+              <dd><a id="url" href="#" target="_blank" rel="noreferrer">-</a></dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="card">
+          <h2>Sinais encontrados</h2>
+          <ul id="signals" class="list"></ul>
+        </section>
+
+        <section class="card">
+          <h2>Critérios de pontuação</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Critério</th>
+                <th>Status</th>
+                <th>Pontos</th>
+              </tr>
+            </thead>
+            <tbody id="criteria"></tbody>
+          </table>
+        </section>
+
+        <section class="card">
+          <h2>Palavras-chave eleitorais</h2>
+          <div id="keywords" class="chips"></div>
+        </section>
+
+        <section class="card">
+          <h2>Análise da IA</h2>
+          <p id="aiAnalysis" class="text-block">-</p>
+        </section>
+
+        <section class="card">
+          <h2>Fontes sugeridas</h2>
+          <div id="sources" class="source-list"></div>
+        </section>
+
+        <section class="card">
+          <h2>Recomendação</h2>
+          <p id="recommendation" class="text-block">-</p>
+        </section>
+      </section>
+
+      <section class="card">
+        <h2>Histórico recente</h2>
+        <div id="stats" class="stats"></div>
+        <ol id="history" class="history-list"></ol>
+      </section>
+
+      <footer>
+        Esta ferramenta não determina se uma notícia é verdadeira ou falsa. Ela apenas aponta sinais de risco e recomenda verificação em fontes confiáveis.
+      </footer>
+    </main>
+
+    <script src="vendor/tesseract/tesseract.min.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

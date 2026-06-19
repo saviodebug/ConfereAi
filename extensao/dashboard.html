@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dashboard VerificaVoto</title>
+    <link rel="stylesheet" href="dashboard.css">
+  </head>
+  <body>
+    <main>
+      <header>
+        <img class="app-logo" src="assets/logo-pequena.png" alt="VerificaVoto">
+        <div>
+          <p>VerificaVoto AI Gemini</p>
+          <h1>Dashboard</h1>
+        </div>
+        <button id="refreshBtn" type="button">Atualizar</button>
+      </header>
+
+      <section id="status" class="status"></section>
+
+      <section class="grid">
+        <article class="card">
+          <h2>Estatísticas</h2>
+          <div id="stats" class="stats"></div>
+        </article>
+
+        <article class="card">
+          <h2>Fontes confiáveis</h2>
+          <div id="sources" class="sources"></div>
+        </article>
+      </section>
+
+      <section class="card">
+        <h2>Histórico de análises</h2>
+        <div id="history" class="history"></div>
+      </section>
+    </main>
+
+    <script src="dashboard.js"></script>
+  </body>
+</html>
