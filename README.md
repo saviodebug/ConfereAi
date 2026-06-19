@@ -1,6 +1,6 @@
 # ConfereAí
 
-ConfereAí é uma extensão Chrome/Brave Manifest V3 para apoiar a análise de sinais de risco em notícias, prints e textos sobre temas políticos e eleitorais.
+ConfereAí é uma extensão para navegadores compatíveis com Manifest V3, criada para apoiar a análise de sinais de risco em notícias, prints e textos sobre temas políticos e eleitorais.
 
 A ferramenta não determina se uma notícia é verdadeira ou falsa. Ela aponta sinais de baixo, médio ou alto risco e recomenda verificação em fontes confiáveis.
 
@@ -9,7 +9,7 @@ A ferramenta não determina se uma notícia é verdadeira ou falsa. Ela aponta s
 A extensão coleta o conteúdo informado pelo usuário e envia para uma API hospedada na Vercel. O backend aplica regras locais transparentes, consulta palavras-chave eleitorais, salva o histórico no Supabase e, quando configurado, usa Gemini apenas como complemento explicativo.
 
 ```text
-Extensão Chrome/Brave
+Extensão em navegador compatível com Manifest V3
         ↓
 API Node.js na Vercel
         ↓
