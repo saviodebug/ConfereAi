@@ -14,7 +14,6 @@ const db = useSupabase
 
 const trustedSourcesSeed = [
   ["TSE", "https://www.tse.jus.br/", "fonte oficial"],
-  ["Fato ou Boato", "https://www.tse.jus.br/hotsites/fato-ou-boato/", "checagem oficial"],
   ["TREs", "https://www.tse.jus.br/institucional/tribunais-regionais", "fonte oficial"],
   ["Agência Lupa", "https://lupa.uol.com.br/", "agência de checagem"],
   ["Aos Fatos", "https://www.aosfatos.org/", "agência de checagem"],
@@ -286,20 +285,22 @@ async function getTrustedSources() {
   if (useSupabase) {
     const { data, error } = await supabase
       .from("fontes_confiaveis")
-      .select("id, nome, url, tipo")
+      .select("id, nome, url, tipo, ativo")
+      .neq("nome", "Fato ou Boato")
       .order("nome", { ascending: true });
 
     if (error) {
       throw error;
     }
 
-    return data || [];
+    return (data || []).filter((source) => source.ativo !== false);
   }
 
   return all(
     `SELECT id, nome, url, tipo, ativo
     FROM fontes_confiaveis
     WHERE ativo = 1
+      AND nome <> 'Fato ou Boato'
     ORDER BY nome ASC`
   );
 }
