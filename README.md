@@ -1,79 +1,160 @@
 # VerificaVoto AI Gemini
 
-VerificaVoto AI Gemini é uma versão avançada e separada do VerificaVoto. Ela usa uma extensão Chrome Manifest V3, um backend local em Node.js, banco SQLite, análise por regras locais e análise complementar com Gemini API via Google AI Studio quando a chave estiver configurada.
+VerificaVoto AI Gemini é uma extensão Chrome/Brave Manifest V3 para apoiar a análise de sinais de risco em notícias, prints e textos sobre temas políticos e eleitorais.
 
-A ferramenta não afirma que uma notícia é falsa ou verdadeira. Ela apenas aponta sinais de baixo, médio ou alto risco de desinformação e recomenda verificação em fontes confiáveis.
+A ferramenta não determina se uma notícia é verdadeira ou falsa. Ela aponta sinais de baixo, médio ou alto risco e recomenda verificação em fontes confiáveis.
 
-## Diferença para a versão gratuita por regras
+## Como funciona
 
-A versão gratuita por regras roda localmente na extensão e não usa backend. Esta versão usa:
+A extensão coleta o conteúdo informado pelo usuário e envia para uma API hospedada na Vercel. O backend aplica regras locais transparentes, consulta palavras-chave eleitorais, salva o histórico no Supabase e, quando configurado, usa Gemini apenas como complemento explicativo.
 
-- Extensão Chrome para capturar página.
-- Backend Node.js local.
-- SQLite para histórico e cadastros.
-- Regras locais como classificação principal.
-- Gemini API opcional para explicação complementar.
+```text
+Extensão Chrome/Brave
+        ↓
+API Node.js na Vercel
+        ↓
+Supabase/Postgres
+        ↓
+Gemini API opcional
+```
 
-A classificação principal continua vindo das regras locais. A Gemini apenas complementa a explicação.
+A classificação principal sempre vem das regras locais. A IA não substitui os critérios de pontuação e não deve ser tratada como verificação definitiva.
 
-## Estrutura
+## Recursos
+
+- Análise da página atual aberta no navegador.
+- Análise de prints/imagens com OCR local usando Tesseract.js.
+- Suporte a colar print com `Ctrl+V`.
+- Análise de texto colado manualmente.
+- Classificação por risco: baixo, médio ou alto.
+- Pontuação baseada em critérios visíveis.
+- Lista de sinais encontrados.
+- Palavras-chave eleitorais detectadas.
+- Fontes confiáveis sugeridas.
+- Análise complementar da IA, quando disponível.
+- Histórico recente separado por instalação da extensão.
+- Dashboard com histórico, estatísticas e fontes.
+- Botão para copiar relatório.
+- Geração de relatório HTML para impressão ou PDF.
+
+## Instalação da extensão
+
+1. Baixe ou clone este repositório.
+2. Abra `chrome://extensions/` ou `brave://extensions/`.
+3. Ative o modo de desenvolvedor.
+4. Clique em `Carregar sem compactação` ou `Load unpacked`.
+5. Selecione a pasta:
+
+```text
+extensao/
+```
+
+Depois disso, abra uma notícia, post ou página de interesse e clique no ícone da extensão.
+
+## Backend público
+
+A extensão está configurada para usar a API:
+
+```text
+https://verificavoto-ai-gemini.vercel.app
+```
+
+Endpoint de teste:
+
+```text
+https://verificavoto-ai-gemini.vercel.app/health
+```
+
+Resposta esperada:
+
+```json
+{
+  "status": "ok",
+  "geminiConfigurado": true,
+  "modo": "regras + Gemini",
+  "banco": "supabase",
+  "supabaseConfigurado": true
+}
+```
+
+## Histórico por instalação
+
+Cada instalação da extensão gera um `clientId` local e envia esse identificador ao backend. Com isso, o histórico e as estatísticas são filtrados por instalação.
+
+Isso significa que usuários diferentes usam o mesmo backend, mas não veem o histórico uns dos outros. Se a extensão for reinstalada ou os dados locais forem apagados, um novo `clientId` será criado.
+
+## Critérios de análise
+
+As regras locais observam sinais como:
+
+- ausência de autor;
+- ausência de data;
+- linguagem alarmista;
+- pedido de compartilhamento rápido;
+- alegações graves sobre fraude eleitoral sem fonte oficial;
+- ausência de fonte oficial;
+- muitos termos em caixa alta;
+- aparência suspeita da URL;
+- presença de domínio jornalístico ou institucional conhecido;
+- citação de fonte oficial;
+- autor e data encontrados.
+
+Pontuação:
+
+- `0 a 2`: baixo risco;
+- `3 a 6`: médio risco;
+- `7 ou mais`: alto risco.
+
+## Privacidade e segurança
+
+- A chave Gemini fica somente no backend, em variáveis de ambiente da Vercel.
+- A chave Supabase usada pelo backend também não fica na extensão.
+- A extensão não contém chaves privadas.
+- O OCR roda localmente dentro da extensão antes do texto ser enviado para análise.
+- O histórico é separado por `clientId`, não por login.
+
+## Estrutura do projeto
 
 ```text
 verificavoto-ai-gemini/
 ├── extensao/
-└── backend/
+│   ├── manifest.json
+│   ├── popup.html
+│   ├── popup.css
+│   ├── popup.js
+│   ├── content.js
+│   ├── dashboard.html
+│   ├── dashboard.css
+│   ├── dashboard.js
+│   ├── assets/
+│   ├── icons/
+│   └── vendor/tesseract/
+├── backend/
+│   ├── api/index.js
+│   ├── app.js
+│   ├── server.js
+│   ├── database.js
+│   ├── rulesService.js
+│   ├── keywordService.js
+│   ├── geminiService.js
+│   ├── analysisService.js
+│   ├── package.json
+│   ├── vercel.json
+│   └── .env.example
+└── README.md
 ```
 
-## Criar API Key no Google AI Studio
+## Desenvolvimento local
 
-1. Acesse o Google AI Studio.
-2. Entre com sua conta Google.
-3. Crie uma API key.
-4. Use apenas o Free Tier do Google AI Studio.
-5. Não ative Google Cloud Billing.
-6. Não use Google Cloud Agent Search.
-
-## Configurar `.env`
-
-No diretório `backend/`, copie `.env.example` para `.env`:
-
-```bash
-copy .env.example .env
-```
-
-Edite:
-
-```env
-PORT=3000
-USE_GEMINI=true
-USE_GEMINI_GROUNDING=false
-GEMINI_API_KEY=cole-sua-chave-aqui
-GEMINI_MODEL=gemini-flash-latest
-GEMINI_FALLBACK_MODEL=gemini-3.5-flash
-```
-
-A chave deve ficar somente em `backend/.env`.
-
-## Instalar dependências
+Para rodar o backend localmente:
 
 ```bash
 cd backend
 npm install
-```
-
-## Rodar backend
-
-```bash
 npm run dev
 ```
 
-ou:
-
-```bash
-npm start
-```
-
-O backend deve ficar em:
+O backend local roda em:
 
 ```text
 http://localhost:3000
@@ -85,125 +166,42 @@ Teste:
 http://localhost:3000/health
 ```
 
-## Carregar extensão no Chrome
+Quando as variáveis do Supabase não estão configuradas, o backend usa SQLite local para desenvolvimento.
 
-1. Abra `chrome://extensions/`.
-2. Ative o modo de desenvolvedor.
-3. Clique em `Carregar sem compactação`.
-4. Selecione a pasta `verificavoto-ai-gemini/extensao`.
-5. Abra uma notícia política ou eleitoral.
-6. Clique na extensão.
-7. Use uma das opções:
-   - `Analisar página atual`: captura a aba aberta.
-   - `Analisar print`: escolha imagem ou use `Ctrl+V` em qualquer lugar do popup.
-   - `Analisar texto`: cole um trecho manualmente.
-8. Use `Abrir dashboard` para ver histórico, estatísticas e fontes confiáveis.
+## Variáveis de ambiente
 
-Na análise de print, o OCR roda localmente na extensão com Tesseract.js. O texto extraído é enviado ao backend local para regras, palavras-chave, histórico e Gemini opcional.
-
-## Recursos adicionados ao popup
-
-- Histórico recente usando `GET /historico`.
-- Dashboard em `extensao/dashboard.html`.
-- Fontes confiáveis sugeridas usando `GET /fontes`.
-- Campo de observações do usuário salvo no banco.
-- Relatório HTML com botão para imprimir ou salvar como PDF.
-- Contador de análises por regras locais e por Gemini usando `GET /estatisticas`.
-- Tabela de critérios mostrando quais regras somaram ou reduziram pontos.
-- Botão para copiar relatório.
-- Diagnóstico de uso da Gemini, explicando se a IA foi usada, desativada, sem chave ou se falhou.
-
-## Testar sem chave Gemini
-
-No `.env`:
+No backend, use `.env.example` como modelo:
 
 ```env
-USE_GEMINI=false
-GEMINI_API_KEY=
-```
-
-Rode o backend. A extensão continuará funcionando com regras locais.
-
-## Testar com chave Gemini
-
-No `.env`:
-
-```env
+PORT=3000
 USE_GEMINI=true
-GEMINI_API_KEY=sua-chave-do-google-ai-studio
+USE_GEMINI_GROUNDING=false
+GEMINI_API_KEY=cole-sua-chave-aqui
+GEMINI_MODEL=gemini-flash-latest
+GEMINI_FALLBACK_MODEL=gemini-3.5-flash
+SUPABASE_URL=https://seu-projeto.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=cole-sua-chave-secreta-somente-no-backend
 ```
 
-Rode o backend novamente. A resposta deve mostrar modo `regras + Gemini` quando a chamada funcionar.
+Nunca envie `.env`, chaves Gemini ou chaves secretas Supabase para o GitHub.
 
-## Fallback para regras locais
+## Rotas da API
 
-Se não houver chave, se `USE_GEMINI=false`, se a API atingir limite, ou se o modelo configurado der erro, o backend retorna análise local. A extensão não deve quebrar.
-
-Se a Gemini retornar erro temporário como `503 UNAVAILABLE` ou `model is currently overloaded`, o backend faz novas tentativas. Se ainda falhar, tenta `GEMINI_FALLBACK_MODEL` e outros modelos de fallback no código. Se mesmo assim não funcionar, a análise segue por regras locais e o popup mostra o motivo no campo `Gemini`.
-
-## Não expor a chave
-
-A chave Gemini não pode ir no frontend porque qualquer pessoa poderia inspecionar os arquivos da extensão e copiar a chave. Por isso a extensão chama apenas:
-
-```text
-POST http://localhost:3000/analisar
-```
-
-O backend lê:
-
-```js
-process.env.GEMINI_API_KEY
-```
+- `GET /health`
+- `POST /analisar`
+- `GET /historico?clientId=...`
+- `GET /fontes`
+- `GET /estatisticas?clientId=...`
 
 ## Limitações
 
-- A ferramenta não determina verdade ou falsidade.
+- A ferramenta não comprova verdade ou falsidade.
 - Pode haver falsos positivos e falsos negativos.
-- A captura depende da estrutura da página.
-- A Gemini pode falhar por limite, modelo indisponível ou chave inválida.
-- O histórico fica em SQLite local.
-- Não há autenticação porque o backend foi feito para uso local acadêmico.
+- A captura da página depende da estrutura do site.
+- O OCR pode errar em imagens borradas, cortadas ou com texto pequeno.
+- A IA pode falhar, ficar indisponível ou interpretar contexto de forma incorreta.
+- O `clientId` separa histórico por instalação, mas não é autenticação de usuário.
 
-## Trocar modelo Gemini
+## Objetivo acadêmico
 
-Se o modelo padrão der erro, altere no `.env`:
-
-```env
-GEMINI_MODEL=gemini-1.5-flash
-```
-
-ou outro modelo disponível na sua conta do Google AI Studio.
-
-Você também pode manter um modelo alternativo:
-
-```env
-GEMINI_FALLBACK_MODEL=gemini-3.5-flash
-```
-
-A documentação oficial atual da Gemini API lista `gemini-3.5-flash` como exemplo de modelo estável e `gemini-flash-latest` como alias que pode mudar com o tempo. Se sua chave não tiver acesso a um deles, rode o backend e observe o diagnóstico no console para trocar o valor no `.env`.
-
-## PTT da faculdade
-
-Este projeto pode ser apresentado como Produto Técnico-Tecnológico voltado à educação midiática e à análise preventiva de risco de desinformação eleitoral.
-
-Pontos para apresentação:
-
-- Problema: circulação de conteúdos eleitorais sem fonte clara.
-- Solução: extensão com backend local, regras transparentes e IA complementar.
-- Diferencial: chave protegida no backend e fallback sem IA.
-- Banco: histórico de análises, fontes confiáveis e palavras-chave.
-- Limitação ética: não acusa, não define verdade/falsidade e recomenda checagem manual.
-
-## Arquivos principais
-
-- `extensao/manifest.json`: Manifest V3.
-- `extensao/content.js`: captura título, URL, texto, autor e data.
-- `extensao/popup.js`: analisa página, print com OCR local e texto colado, envia ao backend e renderiza o resultado.
-- `extensao/dashboard.html`: painel de histórico, estatísticas e fontes.
-- `extensao/vendor/tesseract/`: OCR local usado para extrair texto de prints.
-- `backend/server.js`: rotas Express.
-- `backend/database.js`: SQLite e seed inicial.
-- `backend/rulesService.js`: análise local por regras.
-- `backend/keywordService.js`: extração de palavras-chave eleitorais.
-- `backend/geminiService.js`: Gemini opcional via `@google/genai`.
-- `backend/analysisService.js`: orquestra regras, keywords, Gemini e banco.
+O VerificaVoto foi desenvolvido como uma ferramenta de apoio à educação midiática. O foco é mostrar critérios transparentes de análise, uso responsável de IA e recomendação de checagem em fontes oficiais e jornalísticas confiáveis.
