@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "description": "Backend local do ConfereAí com regras, SQLite e Gemini opcional.",
+  "contributors": [
+    "Savio Busana Beckhauser Junior",
+    "Carolina Jardim Ribeiro"
+  ],
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

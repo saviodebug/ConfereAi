@@ -202,6 +202,11 @@ Nunca envie `.env`, chaves Gemini ou chaves secretas Supabase para o GitHub.
 - A IA pode falhar, ficar indisponível ou interpretar contexto de forma incorreta.
 - O `clientId` separa histórico por instalação, mas não é autenticação de usuário.
 
+## Autores
+
+- Savio Busana Beckhauser Junior
+- Carolina Jardim Ribeiro
+
 ## Objetivo acadêmico
 
 O ConfereAí foi desenvolvido como uma ferramenta de apoio à educação midiática. O foco é mostrar critérios transparentes de análise, uso responsável de IA e recomendação de checagem em fontes oficiais e jornalísticas confiáveis.
