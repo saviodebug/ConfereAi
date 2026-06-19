@@ -1,10 +1,8 @@
 const VERCEL_BACKEND_URL = "https://verificavoto-ai-gemini.vercel.app";
-const SHARED_BACKEND_URL = "http://192.168.0.24:3000";
 const BACKEND_URLS = [
-  "http://localhost:3000",
-  "http://127.0.0.1:3000",
   VERCEL_BACKEND_URL,
-  SHARED_BACKEND_URL
+  "http://localhost:3000",
+  "http://127.0.0.1:3000"
 ].filter(Boolean);
 
 const refreshBtn = document.getElementById("refreshBtn");
