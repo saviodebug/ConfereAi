@@ -285,7 +285,7 @@ async function getTrustedSources() {
   if (useSupabase) {
     const { data, error } = await supabase
       .from("fontes_confiaveis")
-      .select("id, nome, url, tipo, ativo")
+      .select("id, nome, url, tipo")
       .neq("nome", "Fato ou Boato")
       .order("nome", { ascending: true });
 
@@ -293,7 +293,7 @@ async function getTrustedSources() {
       throw error;
     }
 
-    return (data || []).filter((source) => source.ativo !== false);
+    return data || [];
   }
 
   return all(
