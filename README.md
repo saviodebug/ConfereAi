@@ -56,13 +56,13 @@ Depois disso, abra uma notícia, post ou página de interesse e clique no ícone
 A extensão está configurada para usar a API:
 
 ```text
-https://confereai.vercel.app
+https://confereaiextensao.vercel.app
 ```
 
 Endpoint de teste:
 
 ```text
-https://confereai.vercel.app/health
+https://confereaiextensao.vercel.app/health
 ```
 
 Resposta esperada:

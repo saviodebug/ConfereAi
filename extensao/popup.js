@@ -1,6 +1,6 @@
 /* global chrome, Tesseract */
 
-const VERCEL_BACKEND_URL = "https://confereai.vercel.app";
+const VERCEL_BACKEND_URL = "https://confereaiextensao.vercel.app";
 const BACKEND_URLS = [
   VERCEL_BACKEND_URL,
   "http://localhost:3000",
