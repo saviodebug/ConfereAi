@@ -39,6 +39,10 @@ A classificação principal sempre vem das regras locais. A IA não substitui os
 
 ## Instalação da extensão
 
+A mesma pasta `extensao/` pode ser carregada em Chrome, Brave, Edge e Firefox.
+
+### Chrome, Brave ou Edge
+
 1. Baixe ou clone este repositório.
 2. Abra `chrome://extensions/` ou `brave://extensions/`.
 3. Ative o modo de desenvolvedor.
@@ -47,6 +51,17 @@ A classificação principal sempre vem das regras locais. A IA não substitui os
 
 ```text
 extensao/
+```
+
+### Firefox
+
+1. Baixe ou clone este repositório.
+2. Abra `about:debugging#/runtime/this-firefox`.
+3. Clique em `Carregar extensão temporária`.
+4. Selecione o arquivo:
+
+```text
+extensao/manifest.json
 ```
 
 Depois disso, abra uma notícia, post ou página de interesse e clique no ícone da extensão.
@@ -122,6 +137,7 @@ confereai/
 │   ├── popup.html
 │   ├── popup.css
 │   ├── popup.js
+│   ├── browser-compat.js
 │   ├── content.js
 │   ├── dashboard.html
 │   ├── dashboard.css
