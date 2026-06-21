@@ -92,6 +92,16 @@ Resposta esperada:
 }
 ```
 
+## Site do projeto
+
+O ConfereAí também possui um site de apresentação publicado na Vercel:
+
+```text
+https://confereai-site.vercel.app
+```
+
+O site apresenta a extensão, seus recursos, autores, política de privacidade e links úteis. Ele é publicado separadamente do repositório de código-fonte.
+
 ## Histórico por instalação
 
 Cada instalação da extensão gera um `clientId` local e envia esse identificador ao backend. Com isso, o histórico e as estatísticas são filtrados por instalação.
