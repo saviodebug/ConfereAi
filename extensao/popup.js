@@ -1,4 +1,4 @@
-/* global chrome, Tesseract */
+/* global Tesseract, queryActiveTab, sendTabMessage, executeScriptFile, createTab, getExtensionUrl */
 
 const VERCEL_BACKEND_URL = "https://confereaiextensao.vercel.app";
 const BACKEND_URLS = [
@@ -71,7 +71,7 @@ async function analyzeCurrentPage() {
   hideOcrText();
 
   try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const [tab] = await queryActiveTab();
 
     if (!tab || !tab.id) {
       throw new Error("Não foi possível identificar a aba ativa.");
@@ -265,31 +265,20 @@ async function capturePage(tabId) {
   try {
     return await sendCaptureMessage(tabId);
   } catch (error) {
-    await chrome.scripting.executeScript({
-      target: { tabId },
-      files: ["content.js"]
-    });
+    await executeScriptFile(tabId, "content.js");
 
     return sendCaptureMessage(tabId);
   }
 }
 
-function sendCaptureMessage(tabId) {
-  return new Promise((resolve, reject) => {
-    chrome.tabs.sendMessage(tabId, { type: "CONFEREAI_CAPTURE" }, (response) => {
-      if (chrome.runtime.lastError) {
-        reject(new Error(chrome.runtime.lastError.message));
-        return;
-      }
+async function sendCaptureMessage(tabId) {
+  const response = await sendTabMessage(tabId, { type: "CONFEREAI_CAPTURE" });
 
-      if (!response) {
-        reject(new Error("A página não retornou dados."));
-        return;
-      }
+  if (!response) {
+    throw new Error("A página não retornou dados.");
+  }
 
-      resolve(response);
-    });
-  });
+  return response;
 }
 
 function handlePrintInputChange() {
@@ -430,9 +419,9 @@ function scoreOcrText(text) {
 function getOcrWorker() {
   if (!ocrWorkerPromise) {
     ocrWorkerPromise = Tesseract.createWorker("por+eng", 1, {
-      workerPath: chrome.runtime.getURL("vendor/tesseract/worker.min.js"),
-      corePath: chrome.runtime.getURL("vendor/tesseract/core"),
-      langPath: chrome.runtime.getURL("vendor/tesseract/lang-data/"),
+      workerPath: getExtensionUrl("vendor/tesseract/worker.min.js"),
+      corePath: getExtensionUrl("vendor/tesseract/core"),
+      langPath: getExtensionUrl("vendor/tesseract/lang-data/"),
       workerBlobURL: false,
       cacheMethod: "none",
       logger: handleOcrProgress
@@ -578,11 +567,11 @@ function generateHtmlReport() {
 
   const html = buildHtmlReport(lastReport);
   const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
-  chrome.tabs.create({ url });
+  createTab(url);
 }
 
 function openDashboard() {
-  chrome.tabs.create({ url: chrome.runtime.getURL("dashboard.html") });
+  createTab(getExtensionUrl("dashboard.html"));
 }
 
 function buildPlainReport(report) {

@@ -1,5 +1,9 @@
+/* global browser, chrome */
+
+const runtimeApi = globalThis.browser || globalThis.chrome;
+
 // Executa dentro da página atual e envia ao popup apenas dados visíveis da aba.
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+runtimeApi.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message && message.type === "CONFEREAI_CAPTURE") {
     sendResponse(capturePageData());
   }
