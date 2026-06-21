@@ -100,7 +100,7 @@ O ConfereAí também possui um site de apresentação publicado na Vercel:
 https://confereai-site.vercel.app
 ```
 
-O site apresenta a extensão, seus recursos, autores, política de privacidade e links úteis. Ele é publicado separadamente do repositório de código-fonte.
+O site apresenta a extensão, seus recursos, autores, política de privacidade e links úteis.
 
 ## Histórico por instalação
 
