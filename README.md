@@ -23,6 +23,7 @@ A classificação principal sempre vem das regras locais. A IA não substitui os
 ## Recursos
 
 - Análise da página atual aberta no navegador.
+- Captura estruturada de notícias, priorizando título, subtítulo, URL canônica, autor, data e texto do artigo.
 - Análise de prints/imagens com OCR local usando Tesseract.js.
 - Suporte a colar print com `Ctrl+V`.
 - Classificação por risco: baixo, médio ou alto.

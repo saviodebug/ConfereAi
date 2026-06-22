@@ -32,6 +32,8 @@ const modeEl = document.getElementById("mode");
 const geminiStatusEl = document.getElementById("geminiStatus");
 const titleEl = document.getElementById("title");
 const urlEl = document.getElementById("url");
+const authorEl = document.getElementById("author");
+const dateEl = document.getElementById("date");
 const signalsEl = document.getElementById("signals");
 const criteriaEl = document.getElementById("criteria");
 const keywordsEl = document.getElementById("keywords");
@@ -420,6 +422,8 @@ function renderResult(pageData, result) {
   titleEl.textContent = pageData.titulo || "-";
   urlEl.textContent = pageData.url || "-";
   urlEl.href = String(pageData.url || "").startsWith("http") ? pageData.url : "#";
+  authorEl.textContent = pageData.autor || "-";
+  dateEl.textContent = pageData.data || "-";
   aiAnalysisEl.textContent = result.analiseIA || "A análise da IA não foi usada nesta execução.";
   recommendationEl.textContent = result.recomendacao || "-";
 
@@ -578,6 +582,8 @@ function buildPlainReport(report) {
     "ConfereAí",
     `Título: ${payload.titulo}`,
     `URL: ${payload.url}`,
+    `Autor: ${payload.autor || "-"}`,
+    `Data: ${payload.data || "-"}`,
     `Classificação: ${result.classificacao}`,
     `Pontuação: ${result.pontuacao}`,
     `Modo: ${result.modo}`,
