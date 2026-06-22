@@ -47,6 +47,7 @@ let ocrWorkerPromise = null;
 let pastedImageFile = null;
 let lastReport = null;
 let activeBackendUrl = null;
+let operationActive = false;
 
 analyzeBtn.addEventListener("click", analyzeCurrentPage);
 analyzePrintBtn.addEventListener("click", analyzePrint);
@@ -66,7 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function analyzeCurrentPage() {
   setLoading(analyzeBtn, true, "Analisando...", "Analisar página atual");
-  setStatus("Coletando dados...");
+  beginOperation("1/3 Capturando título, link, autor, data e texto da notícia...");
   hideOcrText();
 
   try {
@@ -77,6 +78,7 @@ async function analyzeCurrentPage() {
     }
 
     const pageData = await capturePage(tab.id);
+    setStatus("2/3 Enviando conteúdo limpo para a API...");
     await sendToBackendAndRender(withNotes(pageData));
   } catch (error) {
     console.error(error);
@@ -100,22 +102,23 @@ async function analyzePrint() {
   }
 
   setLoading(analyzePrintBtn, true, "Analisando...", "Analisar print");
+  beginOperation("1/4 Lendo o print...");
   hideOcrText();
 
   try {
-    setStatus("Lendo imagem...");
     const preparedImage = await prepareImageForOcr(file);
 
-    setStatus("Extraindo texto...");
+    setStatus("2/4 Extraindo texto do print com OCR...");
     const extractedText = await extractBestTextFromImage(file, preparedImage);
     const cleanedText = extractedText.replace(/\s+/g, " ").trim();
 
     if (cleanedText.length < MIN_TEXT_LENGTH) {
-      setStatus("Não foi possível extrair texto suficiente do print. Tente uma imagem mais nítida.");
+      finishOperation("Não foi possível extrair texto suficiente do print. Tente uma imagem mais nítida.", "error");
       return;
     }
 
     showOcrText(cleanedText);
+    setStatus("3/4 Enviando texto extraído para a API...");
     await sendToBackendAndRender(withNotes({
       titulo: "Texto extraído de print",
       url: "print enviado pelo usuário",
@@ -126,7 +129,7 @@ async function analyzePrint() {
   } catch (error) {
     ocrWorkerPromise = null;
     console.error(error);
-    setStatus("Não foi possível fazer OCR neste print. Tente outra imagem mais nítida.");
+    finishOperation("Não foi possível fazer OCR neste print. Tente outra imagem mais nítida.", "error");
   } finally {
     setLoading(analyzePrintBtn, false, "Analisando...", "Analisar print");
   }
@@ -141,7 +144,7 @@ function withNotes(payload) {
 }
 
 async function sendToBackendAndRender(payload) {
-  setStatus("Analisando...");
+  setStatus("IA e regras analisando sinais de risco. Isso pode levar alguns segundos...");
   const response = await requestBackend("/analisar", {
     method: "POST",
     headers: {
@@ -157,7 +160,7 @@ async function sendToBackendAndRender(payload) {
   const result = await response.json();
   renderResult(payload, result);
   await loadHistoryAndStats();
-  setStatus("Análise concluída.");
+  finishOperation("Análise concluída.", "success");
 }
 
 async function checkBackendHealth() {
@@ -405,7 +408,7 @@ function getOcrWorker() {
 
 function handleOcrProgress(message) {
   if (message.status === "recognizing text" && typeof message.progress === "number") {
-    setStatus(`Extraindo texto... ${Math.round(message.progress * 100)}%`);
+    setStatus(`2/4 Extraindo texto do print com OCR... ${Math.round(message.progress * 100)}%`);
   }
 }
 
@@ -656,12 +659,26 @@ function setLoading(button, isLoading, loadingText, idleText) {
   button.textContent = isLoading ? loadingText : idleText;
 }
 
-function setStatus(message) {
+function beginOperation(message) {
+  operationActive = true;
+  setStatus(message);
+}
+
+function finishOperation(message, type) {
+  operationActive = false;
+  setStatus(message, type);
+}
+
+function setStatus(message, type = "info") {
   statusEl.textContent = message;
+  statusEl.classList.toggle("has-message", Boolean(message));
+  statusEl.classList.toggle("is-busy", operationActive);
+  statusEl.classList.toggle("is-success", type === "success");
+  statusEl.classList.toggle("is-error", type === "error");
 }
 
 function setBackendError() {
-  setStatus("Não foi possível conectar ao backend. Verifique se o servidor está rodando na porta 3000, se o IP de rede está configurado e clique em Verificar backend.");
+  finishOperation("Não foi possível conectar ao backend. Verifique se o servidor está rodando na porta 3000, se o IP de rede está configurado e clique em Verificar backend.", "error");
 }
 
 function scrollToResult() {
