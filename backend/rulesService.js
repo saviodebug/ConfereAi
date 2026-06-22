@@ -215,7 +215,7 @@ function hasManyUppercaseTerms(text) {
 function hasSuspiciousUrl(url) {
   const normalizedUrl = String(url || "").toLowerCase();
 
-  if (normalizedUrl.startsWith("print enviado") || normalizedUrl.startsWith("texto colado")) {
+  if (normalizedUrl.startsWith("print enviado")) {
     return false;
   }
 

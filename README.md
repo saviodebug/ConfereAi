@@ -6,7 +6,7 @@ A ferramenta não determina se uma notícia é verdadeira ou falsa. Ela aponta s
 
 ## Como funciona
 
-A extensão coleta o conteúdo informado pelo usuário e envia para uma API hospedada na Vercel. O backend aplica regras locais transparentes, consulta palavras-chave eleitorais, salva o histórico no Supabase e, quando configurado, usa Gemini apenas como complemento explicativo.
+A extensão coleta o conteúdo da página atual ou de prints enviados pelo usuário e envia para uma API hospedada na Vercel. O backend aplica regras locais transparentes, consulta palavras-chave eleitorais, salva o histórico no Supabase e, quando configurado, usa Gemini para triagem de escopo, apoio na extração de metadados e análise complementar.
 
 ```text
 Extensão em navegador compatível com Manifest V3
@@ -137,6 +137,7 @@ Pontuação:
 - A extensão não contém chaves privadas.
 - O OCR roda localmente dentro da extensão antes do texto ser enviado para análise.
 - O histórico é separado por `clientId`, não por login.
+- Arquivos locais como `.env`, bancos SQLite, `.idea/` e `contexto-atualizado.txt` são ignorados pelo Git.
 
 ## Estrutura do projeto
 
@@ -227,6 +228,10 @@ Nunca envie `.env`, chaves Gemini ou chaves secretas Supabase para o GitHub.
 - O OCR pode errar em imagens borradas, cortadas ou com texto pequeno.
 - A IA pode falhar, ficar indisponível ou interpretar contexto de forma incorreta.
 - O `clientId` separa histórico por instalação, mas não é autenticação de usuário.
+
+## Licença
+
+Este projeto está licenciado sob a licença MIT. Consulte o arquivo `LICENSE` para ver os termos de uso, cópia, modificação e distribuição.
 
 ## Autores
 

@@ -1,39 +1,39 @@
-# Politica de Privacidade do ConfereAi
+# Política de Privacidade do ConfereAí
 
-O ConfereAi analisa sinais de risco em paginas, textos e imagens enviados pelo usuario para apoiar a checagem de informacoes politicas e eleitorais.
+O ConfereAí analisa sinais de risco em páginas e imagens enviadas pelo usuário para apoiar a checagem de informações políticas, eleitorais e cívicas.
 
 ## Dados processados
 
-A extensao pode processar:
+A extensão pode processar:
 
-- texto visivel da pagina atual quando o usuario solicita uma analise;
-- texto digitado ou colado manualmente pelo usuario;
-- texto extraido localmente de imagens ou prints enviados pelo usuario;
-- URL, titulo e sinais de risco associados a uma analise;
-- um identificador local da instalacao da extensao, usado para separar historico e estatisticas dessa instalacao.
+- texto visível da página atual quando o usuário solicita uma análise;
+- metadados da notícia capturados na página, como título, URL, autor e data quando disponíveis;
+- texto extraído localmente de imagens ou prints enviados pelo usuário;
+- sinais de risco, critérios, palavras-chave e classificação associados a uma análise;
+- um identificador local da instalação da extensão, usado para separar histórico e estatísticas dessa instalação.
 
-## Como os dados sao usados
+## Como os dados são usados
 
-Os dados sao usados somente para executar a analise solicitada, exibir o resultado, sugerir fontes confiaveis e manter historico e estatisticas da instalacao da extensao.
+Os dados são usados somente para executar a análise solicitada, exibir o resultado, sugerir fontes confiáveis e manter histórico e estatísticas da instalação da extensão.
 
-A extensao nao afirma se uma noticia e verdadeira ou falsa. Ela classifica sinais de risco e recomenda verificacao em fontes confiaveis.
+A extensão não afirma se uma notícia é verdadeira ou falsa. Ela classifica sinais de risco e recomenda verificação em fontes confiáveis.
 
-## Compartilhamento com servicos externos
+## Compartilhamento com serviços externos
 
-As analises sao enviadas para a API do ConfereAi hospedada na Vercel. O backend pode usar Supabase para armazenar historico e estatisticas e pode usar a API Gemini para gerar analise complementar quando esse recurso estiver habilitado.
+As análises são enviadas para a API do ConfereAí hospedada na Vercel. O backend pode usar Supabase para armazenar histórico e estatísticas e pode usar a API Gemini para gerar análise complementar quando esse recurso estiver habilitado.
 
-Chaves de API e credenciais de servico nao ficam na extensao.
+Chaves de API e credenciais de serviço não ficam na extensão.
 
-## Dados que nao coletamos
+## Dados que não coletamos
 
-O ConfereAi nao coleta senhas, dados de pagamento, mensagens privadas, credenciais de login ou arquivos pessoais que nao tenham sido enviados pelo usuario para analise.
+O ConfereAí não coleta senhas, dados de pagamento, mensagens privadas, credenciais de login ou arquivos pessoais que não tenham sido enviados pelo usuário para análise.
 
-## Controle do usuario
+## Controle do usuário
 
-O usuario decide quando executar uma analise. O historico e vinculado a um identificador local da instalacao da extensao, nao a uma conta de login.
+O usuário decide quando executar uma análise. O histórico é vinculado a um identificador local da instalação da extensão, não a uma conta de login.
 
 ## Contato
 
-Para duvidas sobre privacidade, abra uma issue no repositorio do projeto:
+Para dúvidas sobre privacidade, abra uma issue no repositório do projeto:
 
 https://github.com/saviodebug/ConfereAi/issues
