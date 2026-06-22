@@ -16,6 +16,7 @@ const healthBtn = document.getElementById("healthBtn");
 const dashboardBtn = document.getElementById("dashboardBtn");
 const copyReportBtn = document.getElementById("copyReportBtn");
 const htmlReportBtn = document.getElementById("htmlReportBtn");
+const fullHistoryBtn = document.getElementById("fullHistoryBtn");
 const printInput = document.getElementById("printInput");
 const pastePrintBox = document.getElementById("pastePrintBox");
 const selectedPrintName = document.getElementById("selectedPrintName");
@@ -34,6 +35,7 @@ const titleEl = document.getElementById("title");
 const urlEl = document.getElementById("url");
 const authorEl = document.getElementById("author");
 const dateEl = document.getElementById("date");
+const captureWarningEl = document.getElementById("captureWarning");
 const signalsEl = document.getElementById("signals");
 const criteriaEl = document.getElementById("criteria");
 const keywordsEl = document.getElementById("keywords");
@@ -53,6 +55,7 @@ analyzeBtn.addEventListener("click", analyzeCurrentPage);
 analyzePrintBtn.addEventListener("click", analyzePrint);
 healthBtn.addEventListener("click", checkBackendHealth);
 dashboardBtn.addEventListener("click", openDashboard);
+fullHistoryBtn.addEventListener("click", openDashboard);
 copyReportBtn.addEventListener("click", copyReport);
 htmlReportBtn.addEventListener("click", generateHtmlReport);
 printInput.addEventListener("change", handlePrintInputChange);
@@ -78,6 +81,7 @@ async function analyzeCurrentPage() {
     }
 
     const pageData = await capturePage(tab.id);
+    pageData.captureWarning = getCaptureWarning(pageData);
     setStatus("2/3 Enviando conteúdo limpo para a API...");
     await sendToBackendAndRender(withNotes(pageData));
   } catch (error) {
@@ -123,6 +127,7 @@ async function analyzePrint() {
       titulo: "Texto extraído de print",
       url: "print enviado pelo usuário",
       texto: cleanedText,
+      captureWarning: "",
       autor: "",
       data: ""
     }));
@@ -427,6 +432,7 @@ function renderResult(pageData, result) {
   urlEl.href = String(pageData.url || "").startsWith("http") ? pageData.url : "#";
   authorEl.textContent = result.autor || pageData.autor || "-";
   dateEl.textContent = result.data || pageData.data || "-";
+  renderCaptureWarning(pageData.captureWarning);
   aiAnalysisEl.textContent = result.analiseIA || "A análise da IA não foi usada nesta execução.";
   recommendationEl.textContent = result.recomendacao || "-";
 
@@ -512,11 +518,47 @@ function renderHistory(items) {
     return;
   }
 
-  items.slice(0, 5).forEach((item) => {
+  items.slice(0, 2).forEach((item) => {
     const li = document.createElement("li");
-    li.textContent = `${item.classificacao} (${item.pontuacao}) - ${item.titulo}`;
+    const title = document.createElement("span");
+    title.className = "history-title";
+    title.textContent = item.titulo || "Sem título";
+
+    const meta = document.createElement("span");
+    meta.className = "history-meta";
+    meta.textContent = `${item.classificacao || "Sem classificação"} | Pontuação: ${item.pontuacao ?? "-"} | ${formatHistoryDate(item.createdAt)}`;
+
+    li.append(title, meta);
     historyEl.appendChild(li);
   });
+}
+
+function getCaptureWarning(pageData) {
+  const text = String(pageData.texto || "").replace(/\s+/g, " ").trim();
+  const wordCount = text ? text.split(/\s+/).length : 0;
+
+  if (wordCount < 80) {
+    return "A extensão encontrou pouco texto da notícia. Tente abrir a matéria completa antes de analisar.";
+  }
+
+  if (!pageData.autor || !pageData.data) {
+    return "A captura pode estar incompleta: autor ou data não foram encontrados na página.";
+  }
+
+  return "";
+}
+
+function renderCaptureWarning(message) {
+  captureWarningEl.textContent = message || "";
+  captureWarningEl.classList.toggle("hidden", !message);
+}
+
+function formatHistoryDate(value) {
+  if (!value) {
+    return "";
+  }
+
+  return String(value).slice(0, 10);
 }
 
 function renderStats(stats) {

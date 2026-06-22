@@ -260,6 +260,17 @@ pre {
   line-height: 1.35;
 }
 
+.capture-warning {
+  border: 1px solid var(--medium-border);
+  border-radius: 7px;
+  padding: 9px 10px;
+  background: var(--medium-bg);
+  color: var(--medium-text);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
 .hidden {
   display: none;
 }
@@ -332,6 +343,44 @@ pre {
 .list li {
   margin-bottom: 6px;
   line-height: 1.35;
+}
+
+.history-list {
+  margin: 0 0 10px;
+  padding-left: 0;
+  list-style: none;
+}
+
+.history-list li {
+  border-top: 1px solid var(--border);
+  padding: 8px 0;
+  line-height: 1.35;
+}
+
+.history-list li:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.history-title {
+  display: block;
+  overflow: hidden;
+  color: var(--text);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-meta {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.compact-button {
+  min-height: 34px;
+  font-size: 13px;
 }
 
 .chips {
