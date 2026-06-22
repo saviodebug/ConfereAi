@@ -12,7 +12,6 @@ const MIN_TEXT_LENGTH = 30;
 
 const analyzeBtn = document.getElementById("analyzeBtn");
 const analyzePrintBtn = document.getElementById("analyzePrintBtn");
-const analyzeTextBtn = document.getElementById("analyzeTextBtn");
 const healthBtn = document.getElementById("healthBtn");
 const dashboardBtn = document.getElementById("dashboardBtn");
 const copyReportBtn = document.getElementById("copyReportBtn");
@@ -20,7 +19,6 @@ const htmlReportBtn = document.getElementById("htmlReportBtn");
 const printInput = document.getElementById("printInput");
 const pastePrintBox = document.getElementById("pastePrintBox");
 const selectedPrintName = document.getElementById("selectedPrintName");
-const manualTextInput = document.getElementById("manualTextInput");
 const notesInput = document.getElementById("notesInput");
 const statusEl = document.getElementById("status");
 const backendStatusEl = document.getElementById("backendStatus");
@@ -50,7 +48,6 @@ let activeBackendUrl = null;
 
 analyzeBtn.addEventListener("click", analyzeCurrentPage);
 analyzePrintBtn.addEventListener("click", analyzePrint);
-analyzeTextBtn.addEventListener("click", analyzeManualText);
 healthBtn.addEventListener("click", checkBackendHealth);
 dashboardBtn.addEventListener("click", openDashboard);
 copyReportBtn.addEventListener("click", copyReport);
@@ -133,33 +130,6 @@ async function analyzePrint() {
   }
 }
 
-async function analyzeManualText() {
-  const text = manualTextInput.value.replace(/\s+/g, " ").trim();
-
-  if (text.length < MIN_TEXT_LENGTH) {
-    setStatus("Cole um texto maior para que a análise tenha contexto suficiente.");
-    return;
-  }
-
-  setLoading(analyzeTextBtn, true, "Analisando...", "Analisar texto");
-  hideOcrText();
-
-  try {
-    await sendToBackendAndRender(withNotes({
-      titulo: "Texto colado pelo usuário",
-      url: "texto colado pelo usuário",
-      texto: text,
-      autor: "",
-      data: ""
-    }));
-  } catch (error) {
-    console.error(error);
-    setBackendError();
-  } finally {
-    setLoading(analyzeTextBtn, false, "Analisando...", "Analisar texto");
-  }
-}
-
 function withNotes(payload) {
   return {
     ...payload,
@@ -218,8 +188,8 @@ async function loadHistoryAndStats() {
       renderStats(await statsResponse.json());
     }
   } catch (error) {
-    historyEl.innerHTML = "<li>Histórico indisponível enquanto o backend não estiver rodando.</li>";
-    statsEl.innerHTML = "";
+    historyEl.replaceChildren(createListItem("Histórico indisponível enquanto o backend não estiver rodando."));
+    statsEl.replaceChildren();
   }
 }
 
@@ -463,38 +433,32 @@ function renderResult(pageData, result) {
 }
 
 function renderList(element, items) {
-  element.innerHTML = "";
+  element.replaceChildren();
 
   if (!items.length) {
-    const item = document.createElement("li");
-    item.textContent = "Nenhum sinal específico foi retornado.";
-    element.appendChild(item);
+    element.appendChild(createListItem("Nenhum sinal específico foi retornado."));
     return;
   }
 
   items.forEach((text) => {
-    const item = document.createElement("li");
-    item.textContent = text;
-    element.appendChild(item);
+    element.appendChild(createListItem(text));
   });
 }
 
 function renderCriteria(criteria) {
-  criteriaEl.innerHTML = "";
+  criteriaEl.replaceChildren();
 
   criteria.forEach((criterion) => {
     const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>${escapeHtml(criterion.criterio)}</td>
-      <td>${criterion.ativo ? "Aplicado" : "Não aplicado"}</td>
-      <td>${criterion.pontos > 0 ? `+${criterion.pontos}` : criterion.pontos}</td>
-    `;
+    appendTableCell(row, criterion.criterio);
+    appendTableCell(row, criterion.ativo ? "Aplicado" : "Não aplicado");
+    appendTableCell(row, criterion.pontos > 0 ? `+${criterion.pontos}` : criterion.pontos);
     criteriaEl.appendChild(row);
   });
 }
 
 function renderKeywords(keywords) {
-  keywordsEl.innerHTML = "";
+  keywordsEl.replaceChildren();
 
   if (!keywords.length) {
     const empty = document.createElement("span");
@@ -513,7 +477,7 @@ function renderKeywords(keywords) {
 }
 
 function renderSources(sources) {
-  sourcesEl.innerHTML = "";
+  sourcesEl.replaceChildren();
 
   sources.slice(0, 6).forEach((source) => {
     const wrapper = document.createElement("a");
@@ -521,16 +485,23 @@ function renderSources(sources) {
     wrapper.href = source.url;
     wrapper.target = "_blank";
     wrapper.rel = "noreferrer";
-    wrapper.innerHTML = `<strong>${escapeHtml(source.nome)}</strong><span>${escapeHtml(source.tipo)}</span>`;
+
+    const name = document.createElement("strong");
+    name.textContent = source.nome;
+
+    const type = document.createElement("span");
+    type.textContent = source.tipo;
+
+    wrapper.append(name, type);
     sourcesEl.appendChild(wrapper);
   });
 }
 
 function renderHistory(items) {
-  historyEl.innerHTML = "";
+  historyEl.replaceChildren();
 
   if (!items.length) {
-    historyEl.innerHTML = "<li>Nenhuma análise salva ainda.</li>";
+    historyEl.appendChild(createListItem("Nenhuma análise salva ainda."));
     return;
   }
 
@@ -542,11 +513,37 @@ function renderHistory(items) {
 }
 
 function renderStats(stats) {
-  statsEl.innerHTML = `
-    <div class="stat"><strong>${stats.total || 0}</strong><span>Total</span></div>
-    <div class="stat"><strong>${stats.comGemini || 0}</strong><span>Com Gemini</span></div>
-    <div class="stat"><strong>${stats.regrasLocais || 0}</strong><span>Regras locais</span></div>
-  `;
+  statsEl.replaceChildren(
+    createStat(stats.total || 0, "Total"),
+    createStat(stats.comGemini || 0, "Com Gemini"),
+    createStat(stats.regrasLocais || 0, "Regras locais")
+  );
+}
+
+function createListItem(text) {
+  const item = document.createElement("li");
+  item.textContent = text;
+  return item;
+}
+
+function appendTableCell(row, value) {
+  const cell = document.createElement("td");
+  cell.textContent = value;
+  row.appendChild(cell);
+}
+
+function createStat(value, label) {
+  const stat = document.createElement("div");
+  stat.className = "stat";
+
+  const number = document.createElement("strong");
+  number.textContent = value;
+
+  const text = document.createElement("span");
+  text.textContent = label;
+
+  stat.append(number, text);
+  return stat;
 }
 
 async function copyReport() {

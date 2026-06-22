@@ -76,6 +76,69 @@ Observação:
   }
 }
 
+async function classifyScopeWithGemini({ titulo, url, texto }) {
+  if (!isGeminiEnabled()) {
+    return {
+      inScope: true,
+      categoria: "triagem_indisponivel",
+      justificativa: "Gemini não está configurado. A análise seguirá pelas regras locais.",
+      status: process.env.USE_GEMINI === "true" ? "Triagem Gemini sem chave configurada" : "Triagem Gemini desativada no .env",
+      usado: false
+    };
+  }
+
+  const model = process.env.GEMINI_MODEL || "gemini-flash-latest";
+  const fallbackModel = process.env.GEMINI_FALLBACK_MODEL || "gemini-3.5-flash";
+  const candidateModels = buildCandidateModels(model, fallbackModel);
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  const prompt = `
+Classifique se o conteúdo está dentro do escopo do ConfereAí.
+
+Escopo aceito:
+- notícia política ou eleitoral;
+- alegação sobre governo, eleições, candidatos, partidos, urnas, Justiça Eleitoral, TSE, TREs, Congresso, STF, prefeituras, câmaras, políticas públicas ou autoridades públicas;
+- conteúdo jornalístico, print, postagem ou texto opinativo com possível impacto cívico.
+
+Fora do escopo:
+- frase casual, elogio, piada, conversa pessoal, texto sem relação cívica, política, eleitoral ou jornalística.
+
+Responda somente com JSON válido, sem Markdown:
+{
+  "inScope": false,
+  "categoria": "fora_do_escopo",
+  "justificativa": "frase curta em português do Brasil"
+}
+
+Título: ${titulo || "não informado"}
+URL: ${url || "não informada"}
+Texto:
+${String(texto || "").slice(0, 5000)}
+`;
+
+  try {
+    const { response, usedModel } = await generateWithModelCandidates(ai, candidateModels, prompt);
+    const parsed = parseGeminiJson(response.text || "");
+    const inScope = normalizeScopeBoolean(parsed.inScope);
+
+    return {
+      inScope,
+      categoria: String(parsed.categoria || "incerto").slice(0, 80),
+      justificativa: String(parsed.justificativa || "Conteúdo classificado pela triagem de escopo.").slice(0, 280),
+      status: usedModel === model ? "Triagem Gemini usada com sucesso" : `Triagem Gemini usada com modelo alternativo: ${usedModel}`,
+      usado: true
+    };
+  } catch (error) {
+    logGeminiError(candidateModels.join(", "), error);
+    return {
+      inScope: true,
+      categoria: "triagem_indisponivel",
+      justificativa: "Não foi possível confirmar o escopo com Gemini. A análise seguirá pelas regras locais.",
+      status: buildGeminiFailureStatus(error),
+      usado: false
+    };
+  }
+}
+
 async function generateWithModelCandidates(ai, models, prompt) {
   let lastError;
 
@@ -172,6 +235,29 @@ function cleanGeminiText(text) {
     .trim();
 }
 
+function parseGeminiJson(text) {
+  const cleanText = String(text || "")
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/```$/i, "")
+    .trim();
+  const match = cleanText.match(/\{[\s\S]*\}/);
+
+  return JSON.parse(match ? match[0] : cleanText);
+}
+
+function normalizeScopeBoolean(value) {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    return value.trim().toLowerCase() !== "false";
+  }
+
+  return true;
+}
+
 function buildGeminiFailureStatus(error) {
   const message = String(error && error.message ? error.message : error);
 
@@ -199,6 +285,7 @@ function logGeminiError(model, error) {
 
 module.exports = {
   analyzeWithGemini,
+  classifyScopeWithGemini,
   getGeminiMode,
   isGeminiEnabled
 };

@@ -78,29 +78,36 @@ function getClientId() {
 }
 
 function renderStats(stats) {
-  statsEl.innerHTML = `
-    <div class="stat"><strong>${stats.total || 0}</strong><span>Total</span></div>
-    <div class="stat"><strong>${stats.comGemini || 0}</strong><span>Com Gemini</span></div>
-    <div class="stat"><strong>${stats.regrasLocais || 0}</strong><span>Regras locais</span></div>
-  `;
+  statsEl.replaceChildren(
+    createStat(stats.total || 0, "Total"),
+    createStat(stats.comGemini || 0, "Com Gemini"),
+    createStat(stats.regrasLocais || 0, "Regras locais")
+  );
 }
 
 function renderSources(sources) {
-  sourcesEl.innerHTML = "";
+  sourcesEl.replaceChildren();
 
   sources.forEach((source) => {
     const item = document.createElement("div");
     item.className = "source";
-    item.innerHTML = `
-      <a href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">${escapeHtml(source.nome)}</a>
-      <span>${escapeHtml(source.tipo)}</span>
-    `;
+
+    const link = document.createElement("a");
+    link.href = source.url;
+    link.target = "_blank";
+    link.rel = "noreferrer";
+    link.textContent = source.nome;
+
+    const type = document.createElement("span");
+    type.textContent = source.tipo;
+
+    item.append(link, type);
     sourcesEl.appendChild(item);
   });
 }
 
 function renderHistory(history) {
-  historyEl.innerHTML = "";
+  historyEl.replaceChildren();
 
   if (!history.length) {
     historyEl.textContent = "Nenhuma análise salva ainda.";
@@ -108,17 +115,113 @@ function renderHistory(history) {
   }
 
   history.forEach((analysis) => {
-    const item = document.createElement("article");
+    const item = document.createElement("details");
     item.className = "history-item";
-    item.innerHTML = `
-      <h3>${escapeHtml(analysis.titulo || "Sem título")}</h3>
-      <small>${escapeHtml(analysis.createdAt || "")} | ${escapeHtml(analysis.modo || "")}</small>
-      <p><strong>${escapeHtml(analysis.classificacao || "")}</strong> | Pontuação: ${analysis.pontuacao ?? "-"}</p>
-      <p>${escapeHtml((analysis.sinais || []).join(" "))}</p>
-      ${analysis.observacoes ? `<p><strong>Observações:</strong> ${escapeHtml(analysis.observacoes)}</p>` : ""}
-    `;
+
+    const summary = document.createElement("summary");
+    const summaryContent = document.createElement("span");
+
+    const title = document.createElement("h3");
+    title.textContent = analysis.titulo || "Sem título";
+
+    const meta = document.createElement("small");
+    meta.textContent = `${analysis.createdAt || ""} | ${analysis.modo || ""}`;
+
+    const score = document.createElement("p");
+    const classification = document.createElement("strong");
+    classification.textContent = analysis.classificacao || "";
+    score.append(classification, ` | Pontuação: ${analysis.pontuacao ?? "-"}`);
+
+    summaryContent.append(title, meta, score);
+    summary.appendChild(summaryContent);
+    item.appendChild(summary);
+
+    const details = document.createElement("div");
+    details.className = "history-details";
+
+    appendDetail(details, "URL", analysis.url || "Não informada", analysis.url);
+    appendDetail(details, "Texto analisado", analysis.textoResumo || "Sem resumo salvo.");
+
+    const signals = document.createElement("p");
+    signals.textContent = (analysis.sinais || []).join(" ");
+    appendDetail(details, "Sinais encontrados", signals.textContent || "Nenhum sinal retornado.");
+
+    appendListDetail(details, "Critérios", analysis.criterios || [], formatCriterion);
+    appendListDetail(details, "Palavras-chave", analysis.palavrasChave || [], (keyword) => keyword);
+    appendDetail(details, "Análise da IA", analysis.analiseIA || "Não usada nesta execução.");
+    appendDetail(details, "Gemini", analysis.geminiStatus || "Sem diagnóstico.");
+
+    if (analysis.observacoes) {
+      appendDetail(details, "Observações", analysis.observacoes);
+    }
+
+    item.appendChild(details);
     historyEl.appendChild(item);
   });
+}
+
+function appendDetail(parent, label, value, href) {
+  const wrapper = document.createElement("section");
+  wrapper.className = "detail-block";
+
+  const title = document.createElement("strong");
+  title.textContent = label;
+
+  const content = href && String(href).startsWith("http")
+    ? document.createElement("a")
+    : document.createElement("p");
+
+  if (content.tagName === "A") {
+    content.href = href;
+    content.target = "_blank";
+    content.rel = "noreferrer";
+  }
+
+  content.textContent = value;
+  wrapper.append(title, content);
+  parent.appendChild(wrapper);
+}
+
+function appendListDetail(parent, label, items, formatter) {
+  if (!items.length) {
+    appendDetail(parent, label, "Nenhum item registrado.");
+    return;
+  }
+
+  const wrapper = document.createElement("section");
+  wrapper.className = "detail-block";
+
+  const title = document.createElement("strong");
+  title.textContent = label;
+
+  const list = document.createElement("ul");
+  items.forEach((item) => {
+    const li = document.createElement("li");
+    li.textContent = formatter(item);
+    list.appendChild(li);
+  });
+
+  wrapper.append(title, list);
+  parent.appendChild(wrapper);
+}
+
+function formatCriterion(criterion) {
+  const points = criterion.pontos > 0 ? `+${criterion.pontos}` : criterion.pontos;
+  return `${criterion.criterio}: ${criterion.ativo ? "aplicado" : "não aplicado"} (${points})`;
+}
+
+function createStat(value, label) {
+  const stat = document.createElement("div");
+  stat.className = "stat";
+
+  const number = document.createElement("strong");
+  number.textContent = value;
+
+  const text = document.createElement("span");
+  text.textContent = label;
+
+  stat.append(number, text);
+  return stat;
 }
 
 function escapeHtml(value) {

@@ -1,6 +1,6 @@
 # ConfereAí
 
-ConfereAí é uma extensão para navegadores compatíveis com Manifest V3, criada para apoiar a análise de sinais de risco em notícias, prints e textos sobre temas políticos e eleitorais.
+ConfereAí é uma extensão para navegadores compatíveis com Manifest V3, criada para apoiar a análise de sinais de risco em notícias e prints sobre temas políticos e eleitorais.
 
 A ferramenta não determina se uma notícia é verdadeira ou falsa. Ela aponta sinais de baixo, médio ou alto risco e recomenda verificação em fontes confiáveis.
 
@@ -25,7 +25,6 @@ A classificação principal sempre vem das regras locais. A IA não substitui os
 - Análise da página atual aberta no navegador.
 - Análise de prints/imagens com OCR local usando Tesseract.js.
 - Suporte a colar print com `Ctrl+V`.
-- Análise de texto colado manualmente.
 - Classificação por risco: baixo, médio ou alto.
 - Pontuação baseada em critérios visíveis.
 - Lista de sinais encontrados.

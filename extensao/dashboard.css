@@ -121,10 +121,42 @@ button {
   gap: 8px;
 }
 
-.source a {
+.source a,
+.detail-block a {
   color: var(--primary);
   font-weight: 700;
   text-decoration: none;
+}
+
+.history-item summary {
+  display: flex;
+  gap: 10px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.history-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.history-item summary::before {
+  content: "Ver";
+  align-self: flex-start;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 5px 8px;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.history-item[open] summary::before {
+  content: "Ocultar";
+}
+
+.history-item summary > span {
+  flex: 1;
+  min-width: 0;
 }
 
 .history-item h3 {
@@ -135,6 +167,35 @@ button {
 .history-item p {
   margin: 6px 0 0;
   line-height: 1.4;
+}
+
+.history-details {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+.detail-block strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.detail-block p,
+.detail-block a {
+  display: block;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.detail-block ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  line-height: 1.45;
 }
 
 @media (max-width: 760px) {
