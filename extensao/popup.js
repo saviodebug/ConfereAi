@@ -425,8 +425,8 @@ function renderResult(pageData, result) {
   titleEl.textContent = pageData.titulo || "-";
   urlEl.textContent = pageData.url || "-";
   urlEl.href = String(pageData.url || "").startsWith("http") ? pageData.url : "#";
-  authorEl.textContent = pageData.autor || "-";
-  dateEl.textContent = pageData.data || "-";
+  authorEl.textContent = result.autor || pageData.autor || "-";
+  dateEl.textContent = result.data || pageData.data || "-";
   aiAnalysisEl.textContent = result.analiseIA || "A análise da IA não foi usada nesta execução.";
   recommendationEl.textContent = result.recomendacao || "-";
 
@@ -585,8 +585,8 @@ function buildPlainReport(report) {
     "ConfereAí",
     `Título: ${payload.titulo}`,
     `URL: ${payload.url}`,
-    `Autor: ${payload.autor || "-"}`,
-    `Data: ${payload.data || "-"}`,
+    `Autor: ${result.autor || payload.autor || "-"}`,
+    `Data: ${result.data || payload.data || "-"}`,
     `Classificação: ${result.classificacao}`,
     `Pontuação: ${result.pontuacao}`,
     `Modo: ${result.modo}`,

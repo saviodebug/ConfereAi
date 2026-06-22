@@ -139,6 +139,62 @@ ${String(texto || "").slice(0, 5000)}
   }
 }
 
+async function extractMetadataWithGemini({ titulo, url, texto, metadadosTexto, autor, data }) {
+  if (!isGeminiEnabled() || (autor && data)) {
+    return {
+      autor: autor || "",
+      data: data || "",
+      status: isGeminiEnabled() ? "Metadados já preenchidos sem Gemini" : "Extração Gemini de metadados desativada",
+      usado: false
+    };
+  }
+
+  const model = process.env.GEMINI_MODEL || "gemini-flash-latest";
+  const fallbackModel = process.env.GEMINI_FALLBACK_MODEL || "gemini-3.5-flash";
+  const candidateModels = buildCandidateModels(model, fallbackModel);
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  const prompt = `
+Extraia somente metadados explícitos do conteúdo jornalístico abaixo.
+Não invente autor, veículo, local ou data.
+Se o autor ou a data não aparecerem literalmente no texto, retorne string vazia nesse campo.
+Aceite autores no formato "Por Redação g1, g1 — São Paulo", "Redação g1", nomes de jornalistas ou blocos equivalentes.
+Responda somente com JSON válido, sem Markdown:
+{
+  "autor": "",
+  "data": ""
+}
+
+Autor já capturado: ${autor || "vazio"}
+Data já capturada: ${data || "vazio"}
+Título: ${titulo || "não informado"}
+URL: ${url || "não informada"}
+Texto:
+${String(metadadosTexto || "").slice(0, 2500)}
+
+${String(texto || "").slice(0, 2500)}
+`;
+
+  try {
+    const { response, usedModel } = await generateWithModelCandidates(ai, candidateModels, prompt);
+    const parsed = parseGeminiJson(response.text || "");
+
+    return {
+      autor: autor || String(parsed.autor || "").slice(0, 200),
+      data: data || String(parsed.data || "").slice(0, 120),
+      status: usedModel === model ? "Metadados extraídos com Gemini" : `Metadados extraídos com modelo alternativo: ${usedModel}`,
+      usado: true
+    };
+  } catch (error) {
+    logGeminiError(candidateModels.join(", "), error);
+    return {
+      autor: autor || "",
+      data: data || "",
+      status: buildGeminiFailureStatus(error),
+      usado: false
+    };
+  }
+}
+
 async function generateWithModelCandidates(ai, models, prompt) {
   let lastError;
 
@@ -286,6 +342,7 @@ function logGeminiError(model, error) {
 module.exports = {
   analyzeWithGemini,
   classifyScopeWithGemini,
+  extractMetadataWithGemini,
   getGeminiMode,
   isGeminiEnabled
 };

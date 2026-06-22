@@ -76,10 +76,12 @@ runtimeApi.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 function capturePageData() {
   const article = extractArticle();
-  const title = getTitle(article.element);
+  const structuredData = getStructuredArticleData();
+  const title = getTitle(article.element, structuredData);
   const subtitle = getSubtitle(article.element);
-  const author = findAuthor(article.text, article.element);
-  const date = findDate(article.text, article.element);
+  const contextText = getArticleContextText(article.element);
+  const author = findAuthor(article.text, article.element, structuredData, contextText);
+  const date = findDate(article.text, article.element, structuredData, contextText);
   const canonicalUrl = getCanonicalUrl();
   const textParts = [subtitle, article.text].filter(Boolean);
 
@@ -87,6 +89,7 @@ function capturePageData() {
     titulo: title || "Título não encontrado",
     url: canonicalUrl || window.location.href,
     texto: textParts.join("\n\n").slice(0, MAX_CAPTURED_TEXT_LENGTH),
+    metadadosTexto: contextText,
     autor: author,
     data: date
   };
@@ -187,8 +190,9 @@ function scoreArticleCandidate(element) {
   return textScore + paragraphCount * 45 + headingScore + articleScore + mainScore - noisePenalty;
 }
 
-function getTitle(articleElement) {
+function getTitle(articleElement, structuredData) {
   const candidates = [
+    structuredData.headline,
     articleElement && getFirstText(articleElement, "h1"),
     getMetaContent("og:title"),
     getMetaContent("twitter:title"),
@@ -233,6 +237,85 @@ function getCanonicalUrl() {
   }
 }
 
+function getStructuredArticleData() {
+  const result = {
+    headline: "",
+    author: "",
+    datePublished: "",
+    dateModified: ""
+  };
+  const scripts = Array.from(document.querySelectorAll('script[type="application/ld+json"]'));
+
+  scripts.forEach((script) => {
+    const article = parseJsonLd(script.textContent).find(isArticleJsonLd);
+
+    if (!article) {
+      return;
+    }
+
+    result.headline = result.headline || normalizeText(article.headline || article.name);
+    result.author = result.author || normalizeAuthorValue(article.author || article.creator);
+    result.datePublished = result.datePublished || normalizeText(article.datePublished || article.dateCreated);
+    result.dateModified = result.dateModified || normalizeText(article.dateModified || article.dateUpdated);
+  });
+
+  return result;
+}
+
+function parseJsonLd(value) {
+  try {
+    return flattenJsonLd(JSON.parse(value || ""));
+  } catch (error) {
+    return [];
+  }
+}
+
+function flattenJsonLd(value) {
+  if (!value) {
+    return [];
+  }
+
+  if (Array.isArray(value)) {
+    return value.flatMap(flattenJsonLd);
+  }
+
+  if (typeof value === "object") {
+    return [
+      value,
+      ...flattenJsonLd(value["@graph"])
+    ];
+  }
+
+  return [];
+}
+
+function isArticleJsonLd(value) {
+  const type = value && value["@type"];
+  const types = Array.isArray(type) ? type : [type];
+
+  return types.some((item) => /Article|NewsArticle|ReportageNewsArticle|BlogPosting/i.test(String(item || "")));
+}
+
+function normalizeAuthorValue(value) {
+  if (!value) {
+    return "";
+  }
+
+  if (typeof value === "string") {
+    return cleanAuthor(value);
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(normalizeAuthorValue).filter(Boolean).join(", ").slice(0, 160);
+  }
+
+  if (typeof value === "object") {
+    return cleanAuthor(value.name || value.url || "");
+  }
+
+  return "";
+}
+
 function getMetaContent(name) {
   const element = document.querySelector(`meta[name="${cssEscape(name)}"], meta[property="${cssEscape(name)}"]`);
   return element ? element.getAttribute("content") || "" : "";
@@ -243,7 +326,11 @@ function getFirstText(root, selector) {
   return element ? normalizeText(element.textContent) : "";
 }
 
-function findAuthor(text, articleElement) {
+function findAuthor(text, articleElement, structuredData, contextText) {
+  if (structuredData.author) {
+    return structuredData.author.slice(0, 160);
+  }
+
   const metaAuthor =
     getMetaContent("author") ||
     getMetaContent("article:author") ||
@@ -252,7 +339,7 @@ function findAuthor(text, articleElement) {
     getMetaContent("cXenseParse:author");
 
   if (metaAuthor) {
-    return normalizeText(metaAuthor).slice(0, 160);
+    return cleanAuthor(metaAuthor).slice(0, 160);
   }
 
   const authorSelectors = [
@@ -268,26 +355,36 @@ function findAuthor(text, articleElement) {
     .find((value) => value && value.length <= 180);
 
   if (authorFromPage) {
-    return authorFromPage.slice(0, 160);
+    return cleanAuthor(authorFromPage).slice(0, 160);
   }
 
   const authorPatterns = [
+    /\b[Pp]or\s+[^.!?\n\r]{3,180}(?=(?:\s+\d{1,2}\/\d{1,2}\/\d{2,4})|(?:\s+Atualizado)|(?:\s+\d{1,2}h\d{0,2})|$)/,
     /\b[Pp]or\s+[A-ZÁÉÍÓÚÂÊÔÃÕÇ][^.!?\n\r]{3,180}/,
+    /\b[Rr]edação\s+[^.!?\n\r]{1,80}/,
     /\b[Aa]utor(?:a)?\s*[:\-]\s*[^.!?\n\r]{3,120}/,
     /\b[Pp]ublicado por\s+[^.!?\n\r]{3,120}/
   ];
 
-  for (const pattern of authorPatterns) {
-    const match = text.match(pattern);
-    if (match) {
-      return normalizeText(match[0]).slice(0, 160);
+  for (const sourceText of [contextText, text].filter(Boolean)) {
+    for (const pattern of authorPatterns) {
+      const match = sourceText.match(pattern);
+      if (match) {
+        return cleanAuthor(match[0]).slice(0, 160);
+      }
     }
   }
 
   return "";
 }
 
-function findDate(text, articleElement) {
+function findDate(text, articleElement, structuredData, contextText) {
+  const structuredDate = structuredData.datePublished || structuredData.dateModified;
+
+  if (structuredDate) {
+    return structuredDate.slice(0, 120);
+  }
+
   const metaDate =
     getMetaContent("article:published_time") ||
     getMetaContent("article:modified_time") ||
@@ -309,19 +406,47 @@ function findDate(text, articleElement) {
   }
 
   const datePatterns = [
-    /\b\d{1,2}\s*\/\s*\d{1,2}\s*\/\s*\d{2,4}\b/,
+    /\b\d{1,2}\s*\/\s*\d{1,2}\s*\/\s*\d{2,4}(?:\s+\d{1,2}h\d{0,2})?\b/,
     /\b\d{1,2}\s+de\s+(janeiro|fevereiro|março|marco|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)\s+de\s+\d{4}\b/i,
     /\b20\d{2}\s*-\s*\d{1,2}\s*-\s*\d{1,2}\b/
   ];
 
-  for (const pattern of datePatterns) {
-    const match = text.match(pattern);
-    if (match) {
-      return normalizeText(match[0]).slice(0, 120);
+  for (const sourceText of [contextText, text].filter(Boolean)) {
+    for (const pattern of datePatterns) {
+      const match = sourceText.match(pattern);
+      if (match) {
+        return normalizeText(match[0]).slice(0, 120);
+      }
     }
   }
 
   return "";
+}
+
+function getArticleContextText(articleElement) {
+  const heading = articleElement && articleElement.querySelector("h1");
+  const contextRoot = heading
+    ? heading.closest("article, main, [role='main'], [class*='article'], [class*='materia'], [class*='noticia']") || articleElement
+    : articleElement;
+
+  if (!contextRoot) {
+    return "";
+  }
+
+  const clone = contextRoot.cloneNode(true);
+  clone.querySelectorAll("script, style, noscript, svg, canvas, iframe, nav, header, footer, aside").forEach((element) => element.remove());
+
+  return normalizeText(clone.textContent).slice(0, 2200);
+}
+
+function cleanAuthor(value) {
+  return normalizeText(value)
+    .replace(/^por\s+/i, "")
+    .replace(/^publicado por\s+/i, "")
+    .replace(/^autor(?:a)?\s*[:\-]\s*/i, "")
+    .replace(/\s+(?:\d{1,2}\/\d{1,2}\/\d{2,4}).*$/i, "")
+    .replace(/\s+Atualizado\s+.+$/i, "")
+    .trim();
 }
 
 function cleanTitle(title) {
