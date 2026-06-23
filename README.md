@@ -20,6 +20,17 @@ Gemini API opcional
 
 A classificação principal sempre vem das regras locais. A IA não substitui os critérios de pontuação e não deve ser tratada como verificação definitiva.
 
+## Tecnologias utilizadas
+
+O projeto é dividido em três partes principais: extensão, backend e serviços externos usados para armazenamento e análise complementar.
+
+| Extensão | Backend/API | Dados e IA |
+| --- | --- | --- |
+| Manifest V3 | Node.js | Supabase/Postgres |
+| HTML, CSS e JavaScript | Express | Gemini API opcional |
+| Tesseract.js para OCR local | Vercel | Palavras-chave eleitorais |
+| Compatibilidade Chrome, Brave, Edge e Firefox | Regras locais de pontuação | Fontes confiáveis |
+
 ## Recursos
 
 - Análise da página atual aberta no navegador.
