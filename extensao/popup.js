@@ -9,6 +9,8 @@ const BACKEND_URLS = [
 const MAX_IMAGE_SIZE_BYTES = 12 * 1024 * 1024;
 const MAX_OCR_IMAGE_SIDE = 1800;
 const MIN_TEXT_LENGTH = 30;
+const OCR_FALLBACK_MIN_SCORE = 140;
+const OCR_FALLBACK_MIN_WORDS = 8;
 
 const analyzeBtn = document.getElementById("analyzeBtn");
 const analyzePrintBtn = document.getElementById("analyzePrintBtn");
@@ -50,6 +52,7 @@ let pastedImageFile = null;
 let lastReport = null;
 let activeBackendUrl = null;
 let operationActive = false;
+let ocrStatusMessage = "2/4 Extraindo texto do print com OCR...";
 
 analyzeBtn.addEventListener("click", analyzeCurrentPage);
 analyzePrintBtn.addEventListener("click", analyzePrint);
@@ -112,7 +115,8 @@ async function analyzePrint() {
   try {
     const preparedImage = await prepareImageForOcr(file);
 
-    setStatus("2/4 Extraindo texto do print com OCR...");
+    ocrStatusMessage = "2/4 Extraindo texto do print com OCR...";
+    setStatus(ocrStatusMessage);
     const extractedText = await extractBestTextFromImage(file, preparedImage);
     const cleanedText = extractedText.replace(/\s+/g, " ").trim();
 
@@ -375,8 +379,15 @@ function improveImageContrast(context, width, height) {
 }
 
 async function extractBestTextFromImage(originalImage, preparedImage) {
-  const originalText = await extractTextFromImage(originalImage);
   const preparedText = await extractTextFromImage(preparedImage);
+
+  if (isOcrTextGoodEnough(preparedText)) {
+    return preparedText;
+  }
+
+  ocrStatusMessage = "2/4 Tentando melhorar a leitura do print com OCR avançado...";
+  setStatus(ocrStatusMessage);
+  const originalText = await extractTextFromImage(originalImage);
 
   return scoreOcrText(preparedText) > scoreOcrText(originalText) ? preparedText : originalText;
 }
@@ -396,6 +407,15 @@ function scoreOcrText(text) {
   return letterCount + wordCount * 4 - replacementNoise * 6;
 }
 
+function isOcrTextGoodEnough(text) {
+  const cleanText = String(text || "").replace(/\s+/g, " ").trim();
+  const wordCount = (cleanText.match(/\b[A-Za-zÀ-ÿ]{3,}\b/g) || []).length;
+
+  return cleanText.length >= MIN_TEXT_LENGTH &&
+    wordCount >= OCR_FALLBACK_MIN_WORDS &&
+    scoreOcrText(cleanText) >= OCR_FALLBACK_MIN_SCORE;
+}
+
 function getOcrWorker() {
   if (!ocrWorkerPromise) {
     ocrWorkerPromise = Tesseract.createWorker("por+eng", 1, {
@@ -413,7 +433,7 @@ function getOcrWorker() {
 
 function handleOcrProgress(message) {
   if (message.status === "recognizing text" && typeof message.progress === "number") {
-    setStatus(`2/4 Extraindo texto do print com OCR... ${Math.round(message.progress * 100)}%`);
+    setStatus(`${ocrStatusMessage} ${Math.round(message.progress * 100)}%`);
   }
 }
 

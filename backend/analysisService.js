@@ -7,8 +7,8 @@ const DEFAULT_RECOMMENDATION =
   "Antes de compartilhar, verifique se a informação aparece em fontes oficiais, como TSE, TREs, Justiça Eleitoral ou em agências de checagem.";
 
 async function analyzeContent(input) {
-  const content = await enrichContentMetadata(sanitizeInput(input));
-  const scope = await classifyScopeWithGemini(content);
+  const baseContent = sanitizeInput(input);
+  const scope = await classifyScopeWithGemini(baseContent);
 
   if (!scope.inScope) {
     const fontesSugeridas = await getTrustedSources();
@@ -29,17 +29,17 @@ async function analyzeContent(input) {
       geminiStatus: scope.status,
       recomendacao: "Use o ConfereAí para notícias, prints ou postagens com relação política, eleitoral, jornalística ou cívica.",
       modo: "triagem Gemini",
-      autor: content.autor,
-      data: content.data,
+      autor: baseContent.autor,
+      data: baseContent.data,
       escopo: scope,
       aviso: "Esta ferramenta não determina se uma notícia é verdadeira ou falsa. Ela apenas aponta sinais de risco e recomenda verificação em fontes confiáveis."
     };
 
     await saveAnalysis({
-      clientId: content.clientId,
-      titulo: content.titulo,
-      url: content.url,
-      textoResumo: content.texto.slice(0, 600),
+      clientId: baseContent.clientId,
+      titulo: baseContent.titulo,
+      url: baseContent.url,
+      textoResumo: baseContent.texto.slice(0, 600),
       classificacao: result.classificacao,
       pontuacao: result.pontuacao,
       sinais: result.sinais,
@@ -47,13 +47,14 @@ async function analyzeContent(input) {
       palavrasChave: result.palavrasChave,
       analiseIA: result.analiseIA,
       geminiStatus: result.geminiStatus,
-      observacoes: content.observacoes,
+      observacoes: baseContent.observacoes,
       modo: result.modo
     });
 
     return result;
   }
 
+  const content = await enrichContentMetadata(baseContent);
   const localAnalysis = analyzeByRules(content);
   const palavrasChave = await extractKeywords(content);
   const geminiResult = await analyzeWithGemini({

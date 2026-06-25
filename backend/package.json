@@ -1,6 +1,6 @@
 {
   "name": "confereai-backend",
-  "version": "1.2.7",
+  "version": "1.2.8",
   "private": true,
   "description": "Backend do ConfereAí com regras locais, Supabase, SQLite de desenvolvimento e Gemini opcional.",
   "contributors": [
