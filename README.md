@@ -52,6 +52,16 @@ O projeto é dividido em três partes principais: extensão, backend e serviços
 
 A mesma pasta `extensao/` pode ser carregada em Chrome, Brave, Edge e Firefox.
 
+### Mozilla Add-ons Store
+
+A extensão também está publicada oficialmente na loja de extensões do Firefox:
+
+```text
+https://addons.mozilla.org/en-US/firefox/addon/conferea%C3%AD/
+```
+
+Essa é a forma mais simples de instalar no Firefox sem carregar a extensão manualmente em modo temporário.
+
 ### Chrome, Brave ou Edge
 
 1. Baixe ou clone este repositório.
@@ -65,6 +75,14 @@ extensao/
 ```
 
 ### Firefox
+
+Use a página da Mozilla Add-ons Store para instalar diretamente no Firefox:
+
+```text
+https://addons.mozilla.org/en-US/firefox/addon/conferea%C3%AD/
+```
+
+Para testar uma versão local do código:
 
 1. Baixe ou clone este repositório.
 2. Abra `about:debugging#/runtime/this-firefox`.
@@ -111,7 +129,11 @@ O ConfereAí também possui um site de apresentação publicado na Vercel:
 https://confereai-site.vercel.app
 ```
 
-O site apresenta a extensão, seus recursos, autores, política de privacidade e links úteis.
+O site apresenta a extensão, seus recursos, metodologia, autores, política de privacidade e links úteis. Ele também aponta para o repositório do projeto e para a página oficial do ConfereAí na Mozilla Add-ons Store:
+
+```text
+https://addons.mozilla.org/en-US/firefox/addon/conferea%C3%AD/
+```
 
 ## Histórico por instalação
 
