@@ -6,6 +6,7 @@ const BACKEND_URLS = [
 ].filter(Boolean);
 
 const refreshBtn = document.getElementById("refreshBtn");
+const clearHistoryBtn = document.getElementById("clearHistoryBtn");
 const statusEl = document.getElementById("status");
 const statsEl = document.getElementById("stats");
 const sourcesEl = document.getElementById("sources");
@@ -14,6 +15,7 @@ const historyEl = document.getElementById("history");
 let activeBackendUrl = null;
 
 refreshBtn.addEventListener("click", loadDashboard);
+clearHistoryBtn.addEventListener("click", clearHistory);
 document.addEventListener("DOMContentLoaded", loadDashboard);
 
 async function loadDashboard() {
@@ -36,6 +38,36 @@ async function loadDashboard() {
     statusEl.textContent = `Dados atualizados de ${activeBackendUrl}.`;
   } catch (error) {
     statusEl.textContent = "Não foi possível carregar o dashboard. Verifique se o backend está rodando na porta 3000 e se o IP de rede está acessível.";
+  }
+}
+
+async function clearHistory() {
+  const confirmed = confirm("Limpar o histórico desta instalação do ConfereAí?");
+
+  if (!confirmed) {
+    return;
+  }
+
+  clearHistoryBtn.disabled = true;
+  clearHistoryBtn.textContent = "Limpando...";
+  statusEl.textContent = "Limpando histórico...";
+
+  try {
+    const response = await requestBackend(`/historico?clientId=${encodeURIComponent(getClientId())}`, {
+      method: "DELETE"
+    });
+
+    if (!response.ok) {
+      throw new Error("Backend retornou erro.");
+    }
+
+    await loadDashboard();
+    statusEl.textContent = "Histórico limpo nesta instalação.";
+  } catch (error) {
+    statusEl.textContent = "Não foi possível limpar o histórico agora.";
+  } finally {
+    clearHistoryBtn.disabled = false;
+    clearHistoryBtn.textContent = "Limpar histórico";
   }
 }
 

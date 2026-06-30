@@ -68,6 +68,25 @@ button {
   font-weight: 700;
 }
 
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.secondary {
+  border: 1px solid var(--border);
+  background: #ffffff;
+  color: var(--primary);
+}
+
+.danger {
+  color: #8a1f1f;
+}
+
+.danger:hover {
+  background: #fdeaea;
+}
+
 .status {
   min-height: 22px;
   margin-bottom: 14px;

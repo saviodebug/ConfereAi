@@ -2,7 +2,7 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
-const { initializeDatabase, getHistory, getTrustedSources, getStats } = require("./database");
+const { initializeDatabase, deleteHistory, getHistory, getTrustedSources, getStats } = require("./database");
 const { analyzeContent, getGeminiMode } = require("./analysisService");
 const { isGeminiEnabled } = require("./geminiService");
 
@@ -59,6 +59,22 @@ app.get("/historico", async (request, response) => {
   } catch (error) {
     console.error("Erro ao consultar histórico:", error);
     response.status(500).json({ erro: "Não foi possível consultar o histórico." });
+  }
+});
+
+app.delete("/historico", async (request, response) => {
+  try {
+    const clientId = getClientId(request);
+
+    if (!clientId) {
+      response.status(400).json({ erro: "clientId é obrigatório para limpar o histórico." });
+      return;
+    }
+
+    response.json(await deleteHistory(clientId));
+  } catch (error) {
+    console.error("Erro ao limpar histórico:", error);
+    response.status(500).json({ erro: "Não foi possível limpar o histórico." });
   }
 });
 

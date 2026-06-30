@@ -76,6 +76,93 @@ Observação:
   }
 }
 
+async function classifyScopeAndAnalyzeWithGemini({ titulo, url, texto }) {
+  if (!isGeminiEnabled()) {
+    return {
+      scope: {
+        inScope: true,
+        categoria: "triagem_indisponivel",
+        justificativa: "Gemini não está configurado. A análise seguirá pelas regras locais.",
+        status: process.env.USE_GEMINI === "true" ? "Triagem Gemini sem chave configurada" : "Triagem Gemini desativada no .env",
+        usado: false
+      },
+      analysis: {
+        texto: "",
+        status: process.env.USE_GEMINI === "true" ? "Gemini sem chave configurada" : "Gemini desativado no .env",
+        usado: false
+      }
+    };
+  }
+
+  const model = process.env.GEMINI_MODEL || "gemini-flash-latest";
+  const fallbackModel = process.env.GEMINI_FALLBACK_MODEL || "gemini-3.5-flash";
+  const candidateModels = buildCandidateModels(model, fallbackModel);
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  const currentDate = getCurrentDatePtBr();
+  const prompt = `
+Você apoia o ConfereAí, uma extensão de educação midiática.
+Data atual de referência: ${currentDate}.
+
+Primeiro classifique se o conteúdo está dentro do escopo:
+- notícia política ou eleitoral;
+- alegação sobre governo, eleições, candidatos, partidos, urnas, Justiça Eleitoral, TSE, TREs, Congresso, STF, prefeituras, câmaras, políticas públicas ou autoridades públicas;
+- conteúdo jornalístico, print, postagem ou texto opinativo com possível impacto cívico.
+
+Fora do escopo:
+- frase casual, elogio, piada, conversa pessoal, texto sem relação cívica, política, eleitoral ou jornalística.
+
+Se estiver dentro do escopo, escreva uma análise complementar curta. Não afirme que a notícia é falsa ou verdadeira. Não acuse pessoas ou instituições. Não invente fontes.
+Se estiver fora do escopo, deixe analiseComplementar vazia.
+
+Responda somente com JSON válido, sem Markdown:
+{
+  "inScope": true,
+  "categoria": "politica_eleitoral",
+  "justificativa": "frase curta em português do Brasil",
+  "analiseComplementar": "texto curto em português do Brasil"
+}
+
+Título: ${titulo || "não informado"}
+URL: ${url || "não informada"}
+Texto:
+${String(texto || "").slice(0, 7000)}
+`;
+
+  try {
+    const { response, usedModel } = await generateWithModelCandidates(ai, candidateModels, prompt);
+    const parsed = parseGeminiJson(response.text || "");
+    const inScope = normalizeScopeBoolean(parsed.inScope);
+    const analysisText = inScope ? cleanGeminiText(parsed.analiseComplementar || "") : "";
+    const status = usedModel === model ? "Triagem e análise Gemini usadas com sucesso" : `Triagem e análise Gemini usadas com modelo alternativo: ${usedModel}`;
+
+    return {
+      scope: {
+        inScope,
+        categoria: String(parsed.categoria || "incerto").slice(0, 80),
+        justificativa: String(parsed.justificativa || "Conteúdo classificado pela triagem de escopo.").slice(0, 280),
+        status,
+        usado: true
+      },
+      analysis: {
+        texto: analysisText,
+        status,
+        usado: Boolean(analysisText)
+      }
+    };
+  } catch (error) {
+    logGeminiError(candidateModels.join(", "), error);
+    const fallbackScope = await classifyScopeWithGemini({ titulo, url, texto });
+    const fallbackAnalysis = fallbackScope.inScope
+      ? await analyzeWithGemini({ titulo, url, texto, sinaisLocais: [], palavrasChave: [] })
+      : { texto: "", status: fallbackScope.status, usado: false };
+
+    return {
+      scope: fallbackScope,
+      analysis: fallbackAnalysis
+    };
+  }
+}
+
 async function classifyScopeWithGemini({ titulo, url, texto }) {
   if (!isGeminiEnabled()) {
     return {
@@ -341,8 +428,14 @@ function logGeminiError(model, error) {
 
 module.exports = {
   analyzeWithGemini,
+  classifyScopeAndAnalyzeWithGemini,
   classifyScopeWithGemini,
   extractMetadataWithGemini,
   getGeminiMode,
-  isGeminiEnabled
+  isGeminiEnabled,
+  _internals: {
+    cleanGeminiText,
+    normalizeScopeBoolean,
+    parseGeminiJson
+  }
 };

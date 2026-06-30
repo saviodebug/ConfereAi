@@ -1,14 +1,15 @@
 const { saveAnalysis, getTrustedSources } = require("./database");
 const { analyzeByRules } = require("./rulesService");
 const { extractKeywords } = require("./keywordService");
-const { analyzeWithGemini, classifyScopeWithGemini, extractMetadataWithGemini, getGeminiMode } = require("./geminiService");
+const { classifyScopeAndAnalyzeWithGemini, extractMetadataWithGemini, getGeminiMode } = require("./geminiService");
 
 const DEFAULT_RECOMMENDATION =
   "Antes de compartilhar, verifique se a informação aparece em fontes oficiais, como TSE, TREs, Justiça Eleitoral ou em agências de checagem.";
 
 async function analyzeContent(input) {
   const baseContent = sanitizeInput(input);
-  const scope = await classifyScopeWithGemini(baseContent);
+  const geminiPreAnalysis = await classifyScopeAndAnalyzeWithGemini(baseContent);
+  const scope = geminiPreAnalysis.scope;
 
   if (!scope.inScope) {
     const fontesSugeridas = await getTrustedSources();
@@ -57,13 +58,7 @@ async function analyzeContent(input) {
   const content = await enrichContentMetadata(baseContent);
   const localAnalysis = analyzeByRules(content);
   const palavrasChave = await extractKeywords(content);
-  const geminiResult = await analyzeWithGemini({
-    titulo: content.titulo,
-    url: content.url,
-    texto: content.texto,
-    sinaisLocais: localAnalysis.sinais,
-    palavrasChave
-  });
+  const geminiResult = geminiPreAnalysis.analysis;
   const fontesSugeridas = await getTrustedSources();
   const analiseIA = geminiResult && geminiResult.usado ? geminiResult.texto : "";
   const geminiStatus = geminiResult ? geminiResult.status : "Gemini não executado";

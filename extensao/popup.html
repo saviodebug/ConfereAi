@@ -94,6 +94,13 @@
           </dl>
         </section>
 
+        <section id="capturedTextCard" class="card hidden">
+          <details>
+            <summary>Texto capturado para diagnóstico</summary>
+            <pre id="capturedText"></pre>
+          </details>
+        </section>
+
         <section class="card">
           <h2>Sinais encontrados</h2>
           <ul id="signals" class="list"></ul>
@@ -138,7 +145,10 @@
         <h2>Histórico recente</h2>
         <div id="stats" class="stats"></div>
         <ol id="history" class="history-list"></ol>
-        <button id="fullHistoryBtn" type="button" class="secondary compact-button">Ver dashboard completo</button>
+        <div class="history-actions">
+          <button id="fullHistoryBtn" type="button" class="secondary compact-button">Ver dashboard completo</button>
+          <button id="clearHistoryBtn" type="button" class="secondary danger compact-button">Limpar histórico</button>
+        </div>
       </section>
 
       <footer>

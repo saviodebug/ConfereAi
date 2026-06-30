@@ -1,0 +1,11 @@
+{
+  "name": "confereai",
+  "version": "1.2.9",
+  "private": true,
+  "description": "Scripts de desenvolvimento e empacotamento do ConfereAí.",
+  "scripts": {
+    "test": "npm --prefix backend test",
+    "package:chrome": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package-extension.ps1 -Target chrome",
+    "package:firefox": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package-extension.ps1 -Target firefox"
+  }
+}

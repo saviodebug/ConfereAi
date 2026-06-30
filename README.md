@@ -45,6 +45,8 @@ O projeto é dividido em três partes principais: extensão, backend e serviços
 - Análise complementar da IA, quando disponível.
 - Histórico recente separado por instalação da extensão.
 - Dashboard com histórico, estatísticas e fontes.
+- Limpeza do histórico da instalação atual.
+- Painel de diagnóstico com o texto capturado antes da análise.
 - Botão para copiar relatório.
 - Geração de relatório HTML para impressão ou PDF.
 
@@ -141,6 +143,8 @@ Cada instalação da extensão gera um `clientId` local e envia esse identificad
 
 Isso significa que usuários diferentes usam o mesmo backend, mas não veem o histórico uns dos outros. Se a extensão for reinstalada ou os dados locais forem apagados, um novo `clientId` será criado.
 
+O histórico pode ser limpo pelo popup ou pelo dashboard. O backend também remove análises antigas automaticamente conforme `HISTORY_RETENTION_DAYS`, com padrão de 180 dias.
+
 ## Critérios de análise
 
 As regras locais observam sinais como:
@@ -228,6 +232,20 @@ http://localhost:3000/health
 
 Quando as variáveis do Supabase não estão configuradas, o backend usa SQLite local para desenvolvimento.
 
+Para rodar os testes do backend:
+
+```bash
+cd backend
+npm test
+```
+
+Para gerar ZIPs da extensão em `dist/`:
+
+```bash
+npm run package:chrome
+npm run package:firefox
+```
+
 ## Variáveis de ambiente
 
 No backend, use `.env.example` como modelo:
@@ -241,6 +259,7 @@ GEMINI_MODEL=gemini-flash-latest
 GEMINI_FALLBACK_MODEL=gemini-3.5-flash
 SUPABASE_URL=https://seu-projeto.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=cole-sua-chave-secreta-somente-no-backend
+HISTORY_RETENTION_DAYS=180
 ```
 
 Nunca envie `.env`, chaves Gemini ou chaves secretas Supabase para o GitHub.
@@ -250,6 +269,7 @@ Nunca envie `.env`, chaves Gemini ou chaves secretas Supabase para o GitHub.
 - `GET /health`
 - `POST /analisar`
 - `GET /historico?clientId=...`
+- `DELETE /historico?clientId=...`
 - `GET /fontes`
 - `GET /estatisticas?clientId=...`
 

@@ -47,6 +47,7 @@ const keywordSeed = [
   ["urna fraudada", "risco", 3],
   ["apuração manipulada", "risco", 3]
 ];
+const DEFAULT_HISTORY_RETENTION_DAYS = 180;
 
 function run(sql, params = []) {
   return new Promise((resolve, reject) => {
@@ -78,6 +79,7 @@ async function initializeDatabase() {
   if (useSupabase) {
     await seedTrustedSourcesSupabase();
     await seedKeywordsSupabase();
+    await purgeOldAnalyses();
     return;
   }
 
@@ -127,6 +129,7 @@ async function initializeDatabase() {
 
   await seedTrustedSources();
   await seedKeywords();
+  await purgeOldAnalyses();
 }
 
 async function ensureColumn(table, column, type) {
@@ -219,18 +222,65 @@ async function getKeywordTerms() {
   if (useSupabase) {
     const { data, error } = await supabase
       .from("palavras_chave")
-      .select("palavra")
-      .order("palavra", { ascending: true });
+      .select("*");
 
     if (error) {
       throw error;
     }
 
-    return (data || []).map((row) => row.palavra).filter(Boolean);
+    return (data || []).map((row) => row.palavra || row.termo).filter(Boolean).sort((a, b) => a.localeCompare(b));
   }
 
   const rows = await all("SELECT termo FROM palavras_chave ORDER BY termo ASC");
   return rows.map((row) => row.termo);
+}
+
+async function deleteHistory(clientId) {
+  if (!clientId) {
+    return { deleted: 0 };
+  }
+
+  if (useSupabase) {
+    const { error } = await supabase
+      .from("analises")
+      .delete()
+      .eq("client_id", clientId);
+
+    if (error) {
+      throw error;
+    }
+
+    return { deleted: null };
+  }
+
+  const result = await run("DELETE FROM analises WHERE client_id = ?", [clientId]);
+  return { deleted: result.changes };
+}
+
+async function purgeOldAnalyses() {
+  const retentionDays = Number(process.env.HISTORY_RETENTION_DAYS || DEFAULT_HISTORY_RETENTION_DAYS);
+
+  if (!Number.isFinite(retentionDays) || retentionDays <= 0) {
+    return { deleted: 0 };
+  }
+
+  const cutoff = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000).toISOString();
+
+  if (useSupabase) {
+    const { error } = await supabase
+      .from("analises")
+      .delete()
+      .lt("created_at", cutoff);
+
+    if (error) {
+      throw error;
+    }
+
+    return { deleted: null };
+  }
+
+  const result = await run("DELETE FROM analises WHERE datetime(created_at) < datetime(?)", [cutoff]);
+  return { deleted: result.changes };
 }
 
 async function getHistory(clientId) {
@@ -415,19 +465,29 @@ async function seedKeywordsSupabase() {
   }
 
   const { error } = await supabase.from("palavras_chave").insert(
-    keywordSeed.map(([palavra, categoria]) => ({ palavra, categoria }))
+    keywordSeed.map(([palavra, categoria, peso]) => ({ palavra, categoria, peso }))
   );
 
-  if (error) {
-    throw error;
+  if (!error) {
+    return;
+  }
+
+  const fallback = await supabase.from("palavras_chave").insert(
+    keywordSeed.map(([termo, categoria, peso]) => ({ termo, categoria, peso }))
+  );
+
+  if (fallback.error) {
+    throw fallback.error;
   }
 }
 
 module.exports = {
   initializeDatabase,
   saveAnalysis,
+  deleteHistory,
   getKeywordTerms,
   getHistory,
   getTrustedSources,
-  getStats
+  getStats,
+  purgeOldAnalyses
 };

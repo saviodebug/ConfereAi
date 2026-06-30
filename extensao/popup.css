@@ -383,6 +383,20 @@ pre {
   font-size: 13px;
 }
 
+.history-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.danger {
+  color: var(--high-text);
+}
+
+.danger:hover {
+  background: var(--high-bg);
+}
+
 .chips {
   display: flex;
   flex-wrap: wrap;

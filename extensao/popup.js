@@ -19,6 +19,7 @@ const dashboardBtn = document.getElementById("dashboardBtn");
 const copyReportBtn = document.getElementById("copyReportBtn");
 const htmlReportBtn = document.getElementById("htmlReportBtn");
 const fullHistoryBtn = document.getElementById("fullHistoryBtn");
+const clearHistoryBtn = document.getElementById("clearHistoryBtn");
 const printInput = document.getElementById("printInput");
 const pastePrintBox = document.getElementById("pastePrintBox");
 const selectedPrintName = document.getElementById("selectedPrintName");
@@ -38,6 +39,8 @@ const urlEl = document.getElementById("url");
 const authorEl = document.getElementById("author");
 const dateEl = document.getElementById("date");
 const captureWarningEl = document.getElementById("captureWarning");
+const capturedTextCard = document.getElementById("capturedTextCard");
+const capturedTextEl = document.getElementById("capturedText");
 const signalsEl = document.getElementById("signals");
 const criteriaEl = document.getElementById("criteria");
 const keywordsEl = document.getElementById("keywords");
@@ -59,6 +62,7 @@ analyzePrintBtn.addEventListener("click", analyzePrint);
 healthBtn.addEventListener("click", checkBackendHealth);
 dashboardBtn.addEventListener("click", openDashboard);
 fullHistoryBtn.addEventListener("click", openDashboard);
+clearHistoryBtn.addEventListener("click", clearHistory);
 copyReportBtn.addEventListener("click", copyReport);
 htmlReportBtn.addEventListener("click", generateHtmlReport);
 printInput.addEventListener("change", handlePrintInputChange);
@@ -453,6 +457,7 @@ function renderResult(pageData, result) {
   authorEl.textContent = result.autor || pageData.autor || "-";
   dateEl.textContent = result.data || pageData.data || "-";
   renderCaptureWarning(pageData.captureWarning);
+  renderCapturedText(pageData.texto);
   aiAnalysisEl.textContent = result.analiseIA || "A análise da IA não foi usada nesta execução.";
   recommendationEl.textContent = result.recomendacao || "-";
 
@@ -463,6 +468,12 @@ function renderResult(pageData, result) {
 
   lastReport = { payload: pageData, result };
   scrollToResult();
+}
+
+function renderCapturedText(text) {
+  const cleanText = String(text || "").replace(/\s+/g, " ").trim();
+  capturedTextEl.textContent = cleanText || "Nenhum texto capturado.";
+  capturedTextCard.classList.toggle("hidden", !cleanText);
 }
 
 function renderList(element, items) {
@@ -587,6 +598,34 @@ function renderStats(stats) {
     createStat(stats.comGemini || 0, "Com Gemini"),
     createStat(stats.regrasLocais || 0, "Regras locais")
   );
+}
+
+async function clearHistory() {
+  const confirmed = confirm("Limpar o histórico desta instalação do ConfereAí?");
+
+  if (!confirmed) {
+    return;
+  }
+
+  setLoading(clearHistoryBtn, true, "Limpando...", "Limpar histórico");
+
+  try {
+    const response = await requestBackend(`/historico?clientId=${encodeURIComponent(getClientId())}`, {
+      method: "DELETE"
+    });
+
+    if (!response.ok) {
+      throw new Error(`Backend retornou HTTP ${response.status}.`);
+    }
+
+    await loadHistoryAndStats();
+    setStatus("Histórico limpo nesta instalação.", "success");
+  } catch (error) {
+    console.error(error);
+    setStatus("Não foi possível limpar o histórico agora.", "error");
+  } finally {
+    setLoading(clearHistoryBtn, false, "Limpando...", "Limpar histórico");
+  }
 }
 
 function createListItem(text) {

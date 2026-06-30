@@ -27,6 +27,7 @@ GEMINI_MODEL=gemini-flash-latest
 GEMINI_FALLBACK_MODEL=gemini-3.5-flash
 SUPABASE_URL=https://seu-projeto.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=cole-sua-chave-secreta-somente-no-backend
+HISTORY_RETENTION_DAYS=180
 ```
 
 Para testar sem Gemini:
@@ -48,15 +49,24 @@ ou:
 npm start
 ```
 
+## Testes
+
+```bash
+npm test
+```
+
 ## Rotas
 
 - `GET /health`
 - `POST /analisar`
 - `GET /historico?clientId=...`
+- `DELETE /historico?clientId=...`
 - `GET /fontes`
 - `GET /estatisticas?clientId=...`
 
-O resultado de `POST /analisar` inclui critérios detalhados, fontes sugeridas, triagem de escopo, metadados encontrados e diagnóstico de uso da Gemini.
+O resultado de `POST /analisar` inclui critérios detalhados, fontes sugeridas, triagem de escopo, metadados encontrados e diagnóstico de uso da Gemini. A triagem de escopo e a análise complementar são feitas em uma única chamada Gemini sempre que possível.
+
+O histórico é separado por `clientId` e pode ser limpo por instalação com `DELETE /historico?clientId=...`. Análises antigas também são removidas conforme `HISTORY_RETENTION_DAYS`, com padrão de 180 dias.
 
 ## Segurança da chave
 
